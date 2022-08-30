@@ -1,0 +1,12 @@
++ **
+- data/cars/**/*.dds
++ data/cars/**/*_damaged*.dds
++ data/cars/**/lights_glowlit.dds
++ data/cars/**/skinai*
++ data/cars/**/shadow.dds
++ data/cars/shared/*
+- data/cars/shared/common.dds
+- data/cars/shared/menu_car_shadow.dds
+- data/cars/shared/shock.dds
+- data/menu/cars/**
++ data/menu/cars/shared/*

@@ -1,0 +1,8 @@
+# Most important difference is that demo has videos compressed, full game does not
++ **
+- data/menu/cars/**
+- data/menu/*.tga
++ data/menu/*cls*.tga
++ data/menu/loading_ai?.tga
++ data/menu/loading_default.tga
++ data/menu/loading_pc.tga

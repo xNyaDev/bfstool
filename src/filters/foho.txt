@@ -1,0 +1,8 @@
++ **
+- data/sound/*.fsb
+- data/menu/cars/**
+- data/menu/*_b.tex
+- data/menu/*_t.tex
++ data/menu/loading*.tex
++ data/menu/carnage*.tex
++ data/menu/copyright*.tex
