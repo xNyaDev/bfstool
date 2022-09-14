@@ -25,6 +25,7 @@ pub fn load_filters(filter: Option<Filter>, file: Option<String>) -> Vec<String>
             Filter::FoucX360 => string_lines_to_vec(include_str!("filters/fouc-x360.txt").to_string()),
             Filter::Foho => string_lines_to_vec(include_str!("filters/foho.txt").to_string()),
             Filter::Srr => string_lines_to_vec(include_str!("filters/srr.txt").to_string()),
+            Filter::Rru => string_lines_to_vec(include_str!("filters/rru.txt").to_string()),
         }
     }
 }

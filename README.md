@@ -18,7 +18,7 @@ Support of unofficial archives is present on a best-effort basis and is not guar
 | FlatOut: Ultimate Carnage |     ✔      |     ✔     |                                        |
 | FlatOut: Head On          |     ✔      |     ✔     |                                        |
 | Sega Rally Revo           |     ✔      |     ✔     |                                        |
-| Ridge Racer Unbounded     |     ?      |     ?     | BFS files are encrypted                |
+| Ridge Racer Unbounded     |  Partial   |  Partial  | BFS files are encrypted                |
 | Wreckfest                 |     ?      |     ?     | BFS files are encrypted                |
 
 ## Examples

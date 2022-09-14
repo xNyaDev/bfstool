@@ -6,7 +6,7 @@ pub struct FileHeader {
     ///
     /// V2: `5` if zlib, `4` if store
     ///
-    /// V2a: `1` if zlib, `0` if store
+    /// V2a, V3: `1` if zlib, `0` if store
     pub method: u8,
 
     /// How many additional copies of this specific file exist (FO2)

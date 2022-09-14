@@ -18,7 +18,7 @@ use crate::util::{AsBytes, FileHeaderTrait, lua_hash, sanitize_file_list, unique
 use crate::v2::util::{create_huffman_tree, huffman_decode, huffman_encode, huffman_tree_to_map};
 
 mod structs;
-mod util;
+pub mod util;
 
 /// A v2 BFS file is structured this way, starting at `0h`:
 ///
@@ -211,7 +211,7 @@ impl BfsFileTrait for V2BfsFile {
     }
 
     fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, level: Option<u32>, bar: &ProgressBar) -> io::Result<()> {
-        let mut bfs_file = V2BfsFile::default();
+        let mut bfs_file = Self::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
         bfs_file.bfs_header.writing_library = 0x61794E78; // "xNya"

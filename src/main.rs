@@ -23,6 +23,7 @@ mod filter;
 mod v1;
 mod v2;
 mod identify;
+mod v3;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -168,6 +169,7 @@ pub enum Format {
     V1a,
     V2,
     V2a,
+    V3,
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]
@@ -183,6 +185,7 @@ pub enum Filter {
     FoucX360,
     Foho,
     Srr,
+    Rru,
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]

@@ -3,14 +3,16 @@ use std::io;
 
 use indicatif::ProgressBar;
 
-use crate::{ Format};
+use crate::Format;
 use crate::util::FileHeaderTrait;
 use crate::v1::V1BfsFile;
 use crate::v2::V2BfsFile;
+use crate::v3::V3BfsFile;
 
 pub enum BfsFile {
     V1BfsFile(V1BfsFile),
     V2BfsFile(V2BfsFile),
+    V3BfsFile(V3BfsFile),
 }
 
 impl BfsFileTrait for BfsFile {
@@ -21,6 +23,9 @@ impl BfsFileTrait for BfsFile {
             }
             Format::V2 | Format::V2a => {
                 BfsFile::V2BfsFile(V2BfsFile::read_bfs_from_file(path, format)?)
+            }
+            Format::V3 => {
+                BfsFile::V3BfsFile(V3BfsFile::read_bfs_from_file(path, format)?)
             }
         })
     }
@@ -33,6 +38,9 @@ impl BfsFileTrait for BfsFile {
             Format::V2 | Format::V2a => {
                 V2BfsFile::archive(format, bfs_path, input_folder_path, input_files, verbose, filters, level, bar)
             }
+            Format::V3 => {
+                V3BfsFile::archive(format, bfs_path, input_folder_path, input_files, verbose, filters, level, bar)
+            }
         }
     }
 
@@ -40,6 +48,7 @@ impl BfsFileTrait for BfsFile {
         match self {
             BfsFile::V1BfsFile(bfs_file) => bfs_file.get_file_count(),
             BfsFile::V2BfsFile(bfs_file) => bfs_file.get_file_count(),
+            BfsFile::V3BfsFile(bfs_file) => bfs_file.get_file_count(),
         }
     }
 
@@ -47,6 +56,7 @@ impl BfsFileTrait for BfsFile {
         match self {
             BfsFile::V1BfsFile(bfs_file) => bfs_file.get_data_offset(),
             BfsFile::V2BfsFile(bfs_file) => bfs_file.get_data_offset(),
+            BfsFile::V3BfsFile(bfs_file) => bfs_file.get_data_offset(),
         }
     }
 
@@ -54,6 +64,7 @@ impl BfsFileTrait for BfsFile {
         match self {
             BfsFile::V1BfsFile(bfs_file) => bfs_file.get_file_headers(),
             BfsFile::V2BfsFile(bfs_file) => bfs_file.get_file_headers(),
+            BfsFile::V3BfsFile(bfs_file) => bfs_file.get_file_headers(),
         }
     }
 
@@ -61,6 +72,7 @@ impl BfsFileTrait for BfsFile {
         match self {
             BfsFile::V1BfsFile(bfs_file) => bfs_file.get_file_name_to_header_map(),
             BfsFile::V2BfsFile(bfs_file) => bfs_file.get_file_name_to_header_map(),
+            BfsFile::V3BfsFile(bfs_file) => bfs_file.get_file_name_to_header_map(),
         }
     }
 }
