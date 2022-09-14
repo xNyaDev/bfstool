@@ -8,18 +8,18 @@ Support of unofficial archives is present on a best-effort basis and is not guar
 
 ## File format compatibility list
 
-| Game                      | Extracting | Archiving | Notes                                  |
-|:--------------------------|:----------:|:---------:|:---------------------------------------|
-| Rally Trophy              |    N/A     |    N/A    | Files are not packed                   |
-| Tough Trucks              |    N/A     |    N/A    | Files are not packed                   |
-| FlatOut                   |     ✔      |     ✔     |                                        |
-| Glimmerati                |    N/A     |    N/A    | Files are packed in standard ZIP files |
-| FlatOut 2                 |     ✔      |     ✔     |                                        |
-| FlatOut: Ultimate Carnage |     ✔      |     ✔     |                                        |
-| FlatOut: Head On          |     ✔      |     ✔     |                                        |
-| Sega Rally Revo           |     ✔      |     ✔     |                                        |
-| Ridge Racer Unbounded     |  Partial   |  Partial  | BFS files are encrypted                |
-| Wreckfest                 |     ?      |     ?     | BFS files are encrypted                |
+| Game                      | Extracting | Archiving | Notes                                                                                 |
+|:--------------------------|:----------:|:---------:|:--------------------------------------------------------------------------------------|
+| Rally Trophy              |    N/A     |    N/A    | Files are not packed                                                                  |
+| Tough Trucks              |    N/A     |    N/A    | Files are not packed                                                                  |
+| FlatOut                   |     ✔      |     ✔     |                                                                                       |
+| Glimmerati                |    N/A     |    N/A    | Files are packed in standard ZIP files                                                |
+| FlatOut 2                 |     ✔      |     ✔     |                                                                                       |
+| FlatOut: Ultimate Carnage |     ✔      |     ✔     |                                                                                       |
+| FlatOut: Head On          |     ✔      |     ✔     |                                                                                       |
+| Sega Rally Revo           |     ✔      |     ✔     |                                                                                       |
+| Ridge Racer Unbounded     |     ✔      |  Partial  | BFS files are encrypted. See below for decrypting. Cannot be encrypted back currently |
+| Wreckfest                 |     ?      |     ?     | BFS files are encrypted                                                               |
 
 ## Examples
 

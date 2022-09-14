@@ -1,7 +1,11 @@
+use std::{fs, io};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::ffi::CString;
-use std::fs;
+use std::fs::File;
+use std::io::{BufWriter, Write};
 use std::path::Path;
+
+use crate::Endianness;
 
 pub trait AsBytes {
     const BYTE_COUNT: usize;
@@ -37,6 +41,11 @@ pub fn lua_hash(string: Vec<u8>) -> u32 {
 /// Create an u32 from the first 4 bytes of a Vec<u8>
 pub fn u32_from_le_bytes(bytes: &mut Vec<u8>) -> u32 {
     u32::from_le_bytes((&*(bytes.drain(0..4).collect::<Vec<u8>>())).try_into().unwrap())
+}
+
+/// Create an u32 from the first 4 bytes of a Vec<u8>
+pub fn u32_from_be_bytes(bytes: &mut Vec<u8>) -> u32 {
+    u32::from_be_bytes((&*(bytes.drain(0..4).collect::<Vec<u8>>())).try_into().unwrap())
 }
 
 /// Create an u16 from the first 2 bytes of a Vec<u8>
@@ -134,3 +143,20 @@ pub fn string_lines_to_vec(string: String) -> Vec<String> {
     ).collect()
 }
 
+pub fn write_data_to_file_endian(file_writer: &mut BufWriter<File>, data: Vec<u32>, endianness: Endianness) -> io::Result<()> {
+    for data in data {
+        match endianness {
+            Endianness::Le => {
+                file_writer.write_all(
+                    data.to_le_bytes().as_slice(),
+                ).expect("Failed to write to output file");
+            }
+            Endianness::Be => {
+                file_writer.write_all(
+                    data.to_be_bytes().as_slice(),
+                ).expect("Failed to write to output file");
+            }
+        }
+    }
+    Ok(())
+}

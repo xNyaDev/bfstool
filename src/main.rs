@@ -2,7 +2,8 @@ use std::{fs, io};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::fs::File;
-use std::io::{BufReader, BufWriter, Seek, Write};
+use std::io::{BufReader, BufWriter, Seek, SeekFrom, Write};
+use std::mem::size_of;
 use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand, ValueEnum};
@@ -12,9 +13,12 @@ use tabled::object::{Columns, Segment};
 
 use crate::archived_data::{raw_extract, zlib_extract};
 use crate::bfs::{BfsFile, BfsFileTrait};
+use crate::crypt::{create_key, decrypt_headers_block, read_and_decrypt_block};
+use crate::Endianness::{Be, Le};
 use crate::filter::{apply_filters, apply_single_filter, load_filters};
 use crate::identify::identify;
-use crate::util::{list_files_recursively, string_lines_to_vec};
+use crate::key_parser::KeyValueParser;
+use crate::util::{list_files_recursively, string_lines_to_vec, u32_from_be_bytes, u32_from_le_bytes, write_data_to_file_endian};
 
 mod bfs;
 mod util;
@@ -24,6 +28,8 @@ mod v1;
 mod v2;
 mod identify;
 mod v3;
+mod crypt;
+mod key_parser;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -130,6 +136,31 @@ enum Commands {
         #[clap(short = 'q', long)]
         no_progress: bool,
     },
+    /// Decrypt an archive
+    Decrypt {
+        /// The input file to decrypt
+        input: String,
+        /// The decrypted file
+        output: String,
+        /// Key for the BFS archive
+        #[clap(long, value_parser = KeyValueParser::new())]
+        key: [u8; 16],
+        /// Key for the archive header
+        #[clap(long, value_parser = KeyValueParser::new())]
+        header_key: [u8; 16],
+        #[clap(long, value_enum)]
+        /// Data endianness, if omitted bfstool will try to guess
+        data_mode: Option<Endianness>,
+        #[clap(long, value_enum)]
+        /// Key endianness, if omitted bfstool will try to guess
+        key_mode: Option<Endianness>,
+        /// Print more info
+        #[clap(short, long)]
+        verbose: bool,
+        /// Suppress progress bar
+        #[clap(short = 'q', long)]
+        no_progress: bool,
+    },
     /// Dump file and generate rebuild info
     #[clap(visible_alias = "d")]
     Dump {
@@ -200,6 +231,12 @@ pub enum FileListOrder {
     OffsetDesc,
     NameAsc,
     NameDesc,
+}
+
+#[derive(ValueEnum, Clone, Eq, PartialEq, Copy)]
+pub enum Endianness {
+    Le,
+    Be,
 }
 
 fn main() {
@@ -656,6 +693,158 @@ fn main() {
                 } else {
                     println!("To see which ones, please add the --verbose flag");
                 }
+            }
+        }
+        Commands::Decrypt {
+            input,
+            output,
+            key,
+            header_key,
+            data_mode,
+            key_mode,
+            verbose,
+            no_progress
+        } => {
+            let input_file = File::open(&input).expect("Failed to open input file");
+            let mut input_file_reader = BufReader::new(input_file);
+
+            if verbose {
+                println!("Checking data key");
+            }
+            let combinations = match (data_mode, key_mode) {
+                (Some(data_mode), Some(key_mode)) => {
+                    vec![(data_mode, key_mode)]
+                }
+                (Some(data_mode), None) => {
+                    vec![
+                        (data_mode, Le),
+                        (data_mode, Be),
+                    ]
+                }
+                (None, Some(key_mode)) => {
+                    vec![
+                        (Le, key_mode),
+                        (Be, key_mode),
+                    ]
+                }
+                (None, None) => {
+                    vec![
+                        (Le, Le),
+                        (Be, Be),
+                        (Be, Le),
+                        (Le, Be),
+                    ]
+                }
+            };
+
+            let mut combination = None;
+            let mut data_offset = 0;
+            let mut decrypted_data = Vec::new();
+
+            for (data_mode, key_mode) in combinations {
+                if verbose {
+                    println!(
+                        "Checking {} data with {} key",
+                        match data_mode {
+                            Le => "little endian",
+                            Be => "big endian"
+                        },
+                        match key_mode {
+                            Le => "little endian",
+                            Be => "big endian"
+                        }
+                    );
+                }
+
+                let key = create_key(key, key_mode);
+
+                input_file_reader.seek(SeekFrom::Start(0)).expect("Failed to read input file");
+
+                let mut block_vec = read_and_decrypt_block(&mut input_file_reader, key, data_mode).expect("Failed to read input file");
+                if block_vec.get(0) == Some(&0x31736662) || block_vec.get(0) == Some(&0x62667331) { // "bfs1" header
+                    combination = Some((data_mode, key_mode));
+                    data_offset = match data_mode {
+                        Le => { block_vec.get(2).unwrap().clone() }
+                        Be => { block_vec.get(2).unwrap().swap_bytes() }
+                    } & 0x7FFFFFFF;
+                    decrypted_data.append(&mut block_vec);
+                    if verbose {
+                        println!("Matched");
+                    }
+                    break;
+                } else {
+                    if verbose {
+                        println!("Not matched");
+                    }
+                }
+            }
+
+            if let Some((data_mode, key_mode)) = combination {
+                let key = create_key(key, key_mode);
+
+                let mut decrypted_index = 0x8000;
+                if verbose {
+                    println!("Checking headers key");
+                }
+
+                while decrypted_index < data_offset {
+                    decrypted_index += 0x8000;
+                    let mut block_vec = read_and_decrypt_block(&mut input_file_reader, key, data_mode).expect("Failed to read input file");
+                    decrypted_data.append(&mut block_vec);
+                }
+
+                let mut header_data: Vec<u32> = decrypted_data.drain(5..(data_offset as usize / size_of::<u32>())).collect();
+                decrypt_headers_block(&mut header_data, create_key(header_key, key_mode));
+
+                if header_data.get(0) == Some(&0x3E5) || header_data.get(0) == Some(&0xE5030000) {
+                    if verbose {
+                        println!("Headers decrypted, decrypting the entire file");
+                    }
+                    let file_size = fs::metadata(&input).unwrap().len();
+                    let bar = if no_progress {
+                        ProgressBar::hidden()
+                    } else {
+                        ProgressBar::new(file_size)
+                    };
+                    bar.set_style(ProgressStyle::default_bar().template("[{elapsed}] {wide_bar} [{bytes}/{total_bytes}]").unwrap().progress_chars("##-"));
+
+                    let output_file = File::create(&output).expect("Failed to create output file");
+                    let mut output_file_writer = BufWriter::new(output_file);
+
+                    write_data_to_file_endian(
+                        &mut output_file_writer,
+                        decrypted_data.drain(0..5).collect(),
+                        data_mode
+                    ).expect("Failed to write to output file");
+
+                    write_data_to_file_endian(
+                        &mut output_file_writer,
+                        header_data,
+                        data_mode
+                    ).expect("Failed to write to output file");
+
+                    write_data_to_file_endian(
+                        &mut output_file_writer,
+                        decrypted_data,
+                        data_mode
+                    ).expect("Failed to write to output file");
+
+                    bar.inc(decrypted_index as u64);
+
+                    for _ in ((decrypted_index as u64)..file_size).step_by(0x8000) {
+                        let block_vec = read_and_decrypt_block(&mut input_file_reader, key, data_mode).expect("Failed to read input file");
+                        write_data_to_file_endian(
+                            &mut output_file_writer,
+                            block_vec,
+                            data_mode
+                        ).expect("Failed to write to output file");
+                        bar.inc(0x8000);
+                    }
+                } else {
+                    println!("Incorrect headers key");
+                }
+            } else {
+                println!("Incorrect key");
             }
         }
         Commands::Dump {
