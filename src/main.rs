@@ -270,6 +270,9 @@ fn main() {
             fn display_offset(offset: &u32) -> String {
                 format!("{:08x}", offset)
             }
+            fn display_copies(copies: &(u8, u16)) -> String {
+                format!("{}+{}", copies.0, copies.1)
+            }
 
             #[derive(Tabled, Eq, PartialEq)]
             pub struct FileToList {
@@ -281,6 +284,9 @@ fn main() {
 
                 #[tabled(rename = "Compressed")]
                 pub compressed: u32,
+
+                #[tabled(rename = "Copies", display_with = "display_copies")]
+                pub copies: (u8, u16),
 
                 #[tabled(rename = "Offset", display_with = "display_offset")]
                 pub offset: u32,
@@ -325,6 +331,7 @@ fn main() {
                         },
                         size: file_header.get_unpacked_size(),
                         compressed: file_header.get_packed_size(),
+                        copies: file_header.get_file_copies_num(),
                         offset: file_header.get_data_offset(),
                         file_name: file_name.clone(),
                     }
@@ -410,11 +417,11 @@ fn main() {
                                 .with(Alignment::right())
                         )
                         .with(
-                            Modify::new(Columns::single(3))
+                            Modify::new(Columns::single(4))
                                 .with(Alignment::center())
                         )
                         .with(
-                            Modify::new(Columns::single(4))
+                            Modify::new(Columns::last())
                                 .with(Alignment::left())
                         )
                 );

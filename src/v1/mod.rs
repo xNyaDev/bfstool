@@ -242,7 +242,7 @@ impl BfsFileTrait for V1BfsFile {
             let mut file_header = FileHeader {
                 method: 0,
                 file_copies: 0,
-                padding: 0,
+                file_copies_a: 0,
                 data_offset: file_writer.stream_position()? as u32,
                 unpacked_size: data.len() as u32,
                 packed_size: 0,

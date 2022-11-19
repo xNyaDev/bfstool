@@ -14,8 +14,10 @@ pub struct FileHeader {
     /// Offsets of additional copies are stored after the file name
     pub file_copies: u8,
 
-    /// Padding (00 00)
-    pub padding: u16,
+    /// How many additional copies of this specific file exist - alternative, probably unused.
+    ///
+    /// Offsets of additional copies are stored after the file name
+    pub file_copies_a: u16,
 
     /// Offset at which the actual file data is found
     ///
@@ -46,7 +48,7 @@ impl AsBytes for FileHeader {
         Self {
             method: u8_from_le_bytes(&mut bytes),
             file_copies: u8_from_le_bytes(&mut bytes),
-            padding: u16_from_le_bytes(&mut bytes),
+            file_copies_a: u16_from_le_bytes(&mut bytes),
             data_offset: u32_from_le_bytes(&mut bytes),
             unpacked_size: u32_from_le_bytes(&mut bytes),
             packed_size: u32_from_le_bytes(&mut bytes),
@@ -60,7 +62,7 @@ impl AsBytes for FileHeader {
         let mut result = Vec::new();
         result.extend_from_slice(&self.method.to_le_bytes());
         result.extend_from_slice(&self.file_copies.to_le_bytes());
-        result.extend_from_slice(&self.padding.to_le_bytes());
+        result.extend_from_slice(&self.file_copies_a.to_le_bytes());
         result.extend_from_slice(&self.data_offset.to_le_bytes());
         result.extend_from_slice(&self.unpacked_size.to_le_bytes());
         result.extend_from_slice(&self.packed_size.to_le_bytes());
@@ -92,5 +94,9 @@ impl FileHeaderTrait for FileHeader {
 
     fn get_file_copies_offsets(&self) -> Vec<u32> {
         self.file_copies_offsets.clone()
+    }
+
+    fn get_file_copies_num(&self) -> (u8, u16) {
+        (self.file_copies, self.file_copies_a)
     }
 }

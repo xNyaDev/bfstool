@@ -100,4 +100,8 @@ impl FileHeaderTrait for FileHeader {
     fn get_file_copies_offsets(&self) -> Vec<u32> {
         self.file_copies_offsets.clone()
     }
+
+    fn get_file_copies_num(&self) -> (u8, u16) {
+        (self.file_copies, self.file_copies_a)
+    }
 }

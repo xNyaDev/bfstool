@@ -30,9 +30,9 @@ Listing archive: europe.bfs
 Physical size: 4531
 Headers size: 4058
 File count: 1
-| Method | Size | Compressed |  Offset  | File Name                 |
-|--------|------|------------|----------|---------------------------|
-|   zlib | 1103 |        471 | 00000fdc | data/language/version.ini |
+| Method | Size | Compressed | Copies |  Offset  | File Name                 |
+|--------|------|------------|--------|----------|---------------------------|
+|   zlib | 1103 |        471 |    0+0 | 00000fdc | data/language/version.ini |
 ```
 
 Extract all files from FlatOut 2 fo2b.bfs to directory fo2b
@@ -82,9 +82,9 @@ Listing archive: europe.bfs
 Physical size: 4531
 Headers size: 4058
 File count: 1
-| Method | Size | Compressed |  Offset  | File Name                 |
-|--------|------|------------|----------|---------------------------|
-|   zlib | 1103 |        471 | 00000fdc | data/language/version.ini |
+| Method | Size | Compressed | Copies |  Offset  | File Name                 |
+|--------|------|------------|--------|----------|---------------------------|
+|   zlib | 1103 |        471 |    0+0 | 00000fdc | data/language/version.ini |
 ```
 
 ## Filtering
