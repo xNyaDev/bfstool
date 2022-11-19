@@ -73,6 +73,28 @@ Identifying archive: ZMenuFO2BFS.bfs
 File not found in the BFS file database.
 Perhaps it's a modded file or not yet supported by bfstool.
 ```
+Fast identify - the file name needs to be it's CRC32 and will be used for identification:
+```console
+$ bfstool.exe id --fast-identify E2FA4AFC.bfs
+Identifying archive: E2FA4AFC.bfs
+File name: common1.bfs
+Game: FlatOut
+Platform: PC
+Format: v1
+Filter: fo1
+Source:
+- All full PC releases
+CRC32: E2FA4AFC
+MD5: 95a606038261bfd36c6e48874e644c44
+SHA1: 51b6671ab55665521a29b010b86d53fb8d324967
+```
+```console
+$ bfstool.exe id --fast-identify common1.bfs
+Identifying archive: common1.bfs
+File not found in the BFS file database.
+Perhaps it's a modded file or not yet supported by bfstool.
+Try removing --fast-identify and running again.
+```
 
 If the file is present in bfs_file_dat.md, you don't need to specify the format for list, extract and dump subcommands
 ```console

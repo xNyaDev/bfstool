@@ -58,6 +58,9 @@ enum Commands {
         /// Suppress progress bar
         #[clap(short = 'q', long)]
         no_progress: bool,
+        /// Treat the file name as CRC32 instead of calculating
+        #[clap(long)]
+        fast_identify: bool,
     },
     /// Extract files from the archive
     #[clap(visible_alias = "e", visible_alias = "x")]
@@ -77,6 +80,9 @@ enum Commands {
         /// Suppress progress bar
         #[clap(short = 'q', long)]
         no_progress: bool,
+        /// Treat the file name as CRC32 instead of calculating
+        #[clap(long)]
+        fast_identify: bool,
     },
     /// Archive all files in a folder
     #[clap(visible_alias = "a")]
@@ -112,6 +118,9 @@ enum Commands {
         /// Suppress progress bar
         #[clap(short = 'q', long)]
         no_progress: bool,
+        /// Treat the file name as CRC32 instead of calculating
+        #[clap(long)]
+        fast_identify: bool,
     },
     /// Test if the filters in the archive match the given format
     #[clap(visible_alias = "tf")]
@@ -133,6 +142,9 @@ enum Commands {
         /// Suppress progress bar
         #[clap(short = 'q', long)]
         no_progress: bool,
+        /// Treat the file name as CRC32 instead of calculating
+        #[clap(long)]
+        fast_identify: bool,
     },
     /// Decrypt an archive
     Decrypt {
@@ -175,6 +187,9 @@ enum Commands {
         /// Suppress progress bar
         #[clap(short = 'q', long)]
         no_progress: bool,
+        /// Treat the file name as CRC32 instead of calculating
+        #[clap(long)]
+        fast_identify: bool,
     },
     /// Rebuild file from given info
     #[clap(visible_alias = "r")]
@@ -246,7 +261,8 @@ fn main() {
             format,
             raw,
             order,
-            no_progress
+            no_progress,
+            fast_identify
         } => {
             let format = if let Some(format) = format {
                 format
@@ -254,11 +270,15 @@ fn main() {
                 if let Some(file_info) = identify(
                     &bfs_name,
                     no_progress,
+                    fast_identify,
                 ) {
                     Format::from_str(&file_info.format, false).unwrap()
                 } else {
                     println!("File not found in BFS file database.");
                     println!("Please provide an appropriate format to use.");
+                    if fast_identify {
+                        println!("Try removing --fast-identify and running again.");
+                    }
                     std::process::exit(1);
                 }
             };
@@ -433,7 +453,8 @@ fn main() {
             filter,
             format,
             verbose,
-            no_progress
+            no_progress,
+            fast_identify
         } => {
             let format = if let Some(format) = format {
                 format
@@ -441,11 +462,15 @@ fn main() {
                 if let Some(file_info) = identify(
                     &bfs_name,
                     no_progress,
+                    fast_identify,
                 ) {
                     Format::from_str(&file_info.format, false).unwrap()
                 } else {
                     println!("File not found in BFS file database.");
                     println!("Please provide an appropriate format to use.");
+                    if fast_identify {
+                        println!("Try removing --fast-identify and running again.");
+                    }
                     std::process::exit(1);
                 }
             };
@@ -574,9 +599,10 @@ fn main() {
         }
         Commands::Identify {
             bfs_name,
-            no_progress
+            no_progress,
+            fast_identify
         } => {
-            if let Some(file_info) = identify(&bfs_name, no_progress) {
+            if let Some(file_info) = identify(&bfs_name, no_progress, fast_identify) {
                 println!("File name: {}", file_info.file_name);
                 println!("Game: {}", file_info.game);
                 println!("Platform: {}", file_info.platform);
@@ -592,6 +618,9 @@ fn main() {
             } else {
                 println!("File not found in the BFS file database.");
                 println!("Perhaps it's a modded file or not yet supported by bfstool.");
+                if fast_identify {
+                    println!("Try removing --fast-identify and running again.");
+                }
             }
         }
         Commands::TestFilters {
@@ -600,7 +629,8 @@ fn main() {
             filter_file,
             format,
             verbose,
-            no_progress
+            no_progress,
+            fast_identify
         } => {
             let (format, filter, filter_file) = if
             format.is_some() && (filter.is_some() || filter_file.is_some()) {
@@ -609,6 +639,7 @@ fn main() {
                 let file_info = identify(
                     &bfs_name,
                     no_progress,
+                    fast_identify,
                 );
                 let format = if let Some(format) = format {
                     format
@@ -618,6 +649,9 @@ fn main() {
                     } else {
                         println!("File not found in BFS file database.");
                         println!("Please provide an appropriate format to use.");
+                        if fast_identify {
+                            println!("Try removing --fast-identify and running again.");
+                        }
                         std::process::exit(1);
                     }
                 };
@@ -857,7 +891,8 @@ fn main() {
             output_folder,
             format,
             verbose,
-            no_progress
+            no_progress,
+            fast_identify
         } => {
             let format = if let Some(format) = format {
                 format
@@ -865,11 +900,15 @@ fn main() {
                 if let Some(file_info) = identify(
                     &bfs_name,
                     no_progress,
+                    fast_identify,
                 ) {
                     Format::from_str(&file_info.format, false).unwrap()
                 } else {
                     println!("File not found in BFS file database.");
                     println!("Please provide an appropriate format to use.");
+                    if fast_identify {
+                        println!("Try removing --fast-identify and running again.");
+                    }
                     std::process::exit(1);
                 }
             };
