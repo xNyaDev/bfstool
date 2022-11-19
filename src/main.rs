@@ -240,6 +240,8 @@ pub enum FileListOrder {
     SizeDesc,
     CompressedAsc,
     CompressedDesc,
+    CopiesAsc,
+    CopiesDesc,
     OffsetAsc,
     OffsetDesc,
     NameAsc,
@@ -396,6 +398,16 @@ fn main() {
                     FileListOrder::CompressedDesc => {
                         |x: &FileToList, y: &FileToList| {
                             y.compressed.cmp(&x.compressed)
+                        }
+                    }
+                    FileListOrder::CopiesAsc => {
+                        |x: &FileToList, y: &FileToList| {
+                            (x.copies.0 as u16 + x.copies.1).cmp(&(y.copies.0 as u16 + y.copies.1))
+                        }
+                    }
+                    FileListOrder::CopiesDesc => {
+                        |x: &FileToList, y: &FileToList| {
+                            (y.copies.0 as u16 + y.copies.1).cmp(&(x.copies.0 as u16 + x.copies.1))
                         }
                     }
                     FileListOrder::OffsetAsc => {
