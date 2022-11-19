@@ -1,5 +1,5 @@
 use clap::builder::{StringValueParser, TypedValueParser};
-use clap::ErrorKind;
+use clap::error::ErrorKind;
 use hex::FromHex;
 
 #[derive(Copy, Clone, Debug)]

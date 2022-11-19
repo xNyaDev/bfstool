@@ -34,8 +34,6 @@ mod key_parser;
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 #[clap(propagate_version = true)]
-#[clap(mut_subcommand("help", | sub | sub.visible_alias("?").visible_alias("h").about("Print help information")))]
-#[clap(mut_arg("help", | arg | arg.visible_short_alias('?')))]
 struct Cli {
     #[clap(subcommand)]
     command: Commands,
