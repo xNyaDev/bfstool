@@ -20,6 +20,7 @@ pub fn load_filters(filter: Option<Filter>, file: Option<String>) -> Vec<String>
             Filter::None => string_lines_to_vec(include_str!("filters/none.txt").to_string()),
             Filter::Fo1 => string_lines_to_vec(include_str!("filters/fo1.txt").to_string()),
             Filter::Fo2 => string_lines_to_vec(include_str!("filters/fo2.txt").to_string()),
+            Filter::Fo2FxPatch => string_lines_to_vec(include_str!("filters/fo2-fx-patch.txt").to_string()),
             Filter::Fo2Demo => string_lines_to_vec(include_str!("filters/fo2-demo.txt").to_string()),
             Filter::Fo2Ps2Beta => string_lines_to_vec(include_str!("filters/fo2-ps2-beta.txt").to_string()),
             Filter::Fo2XboxBeta => string_lines_to_vec(include_str!("filters/fo2-xbox-beta.txt").to_string()),

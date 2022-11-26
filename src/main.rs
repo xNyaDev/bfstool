@@ -246,6 +246,7 @@ pub enum Filter {
     None,
     Fo1,
     Fo2,
+    Fo2FxPatch,
     Fo2Demo,
     Fo2Ps2Beta,
     Fo2XboxBeta,
