@@ -15,7 +15,7 @@ use crate::archived_data::{raw_extract, zlib_extract};
 use crate::bfs::{BfsFile, BfsFileTrait};
 use crate::crypt::{create_key, decrypt_headers_block, read_and_decrypt_block};
 use crate::Endianness::{Be, Le};
-use crate::filter::{apply_filters, apply_single_filter, load_filters};
+use crate::filter::{apply_copy_filters, apply_filters, apply_single_filter, load_copy_filters, load_filters};
 use crate::identify::identify;
 use crate::key_parser::KeyValueParser;
 use crate::util::{list_files_recursively, string_lines_to_vec, u32_from_be_bytes, u32_from_le_bytes, write_data_to_file_endian};
@@ -122,7 +122,7 @@ enum Commands {
         #[clap(long)]
         fast_identify: bool,
     },
-    /// Test if the filters in the archive match the given format
+    /// Test if the filters in the archive match the given one
     #[clap(visible_alias = "tf")]
     TestFilters {
         /// BFS archive file name
@@ -133,6 +133,30 @@ enum Commands {
         /// Filter file for compression
         #[clap(long, conflicts_with = "filter")]
         filter_file: Option<String>,
+        /// File format, if omitted bfstool will try to identify the file using bfs_file_dat.md
+        #[clap(short, long, value_enum)]
+        format: Option<Format>,
+        /// Print more info
+        #[clap(short, long)]
+        verbose: bool,
+        /// Suppress progress bar
+        #[clap(short = 'q', long)]
+        no_progress: bool,
+        /// Treat the file name as CRC32 instead of calculating
+        #[clap(long)]
+        fast_identify: bool,
+    },
+    /// Test if the copy filters in the archive match the given one
+    #[clap(visible_alias = "tcf")]
+    TestCopyFilters {
+        /// BFS archive file name
+        bfs_name: String,
+        /// Filter for file copies - You can either supply the filter name or a filter file
+        #[clap(long, value_enum)]
+        copy_filter: Option<CopyFilter>,
+        /// Filter file for file copies
+        #[clap(long, conflicts_with = "copy_filter")]
+        copy_filter_file: Option<String>,
         /// File format, if omitted bfstool will try to identify the file using bfs_file_dat.md
         #[clap(short, long, value_enum)]
         format: Option<Format>,
@@ -230,6 +254,31 @@ pub enum Filter {
     Foho,
     Srr,
     Rru,
+}
+
+#[derive(ValueEnum, Clone, Eq, PartialEq)]
+pub enum CopyFilter {
+    None,
+    Fo1Pc,
+    Fo1Ps2,
+    Fo1Ps2Usa,
+    Fo1Xbox,
+    Fo2Pc,
+    Fo2Ps2,
+    Fo2Ps2Beta,
+    Fo2Ps2GermanPack,
+    Fo2Ps2Usa,
+    Fo2Xbox,
+    Fo2XboxBeta,
+    FoucPc,
+    FoucPcLangpack,
+    FoucX360,
+    FoucX360De,
+    FoucX360Jp,
+    Foho,
+    Srr,
+    Rru,
+    RruPcUpdate,
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]
@@ -620,6 +669,7 @@ fn main() {
                 println!("Platform: {}", file_info.platform);
                 println!("Format: {}", file_info.format);
                 println!("Filter: {}", file_info.filter);
+                println!("Copy filter: {}", file_info.copy_filter);
                 println!("Source: ");
                 string_lines_to_vec(file_info.source.clone()).into_iter().for_each(|line| {
                     println!("- {}", line.trim())
@@ -739,6 +789,98 @@ fn main() {
                         println!("Files that are compressed but should not be:");
                         for file in not_in_filtered {
                             println!("- {}", file);
+                        }
+                    }
+                } else {
+                    println!("To see which ones, please add the --verbose flag");
+                }
+            }
+        }
+        Commands::TestCopyFilters {
+            bfs_name,
+            copy_filter,
+            copy_filter_file,
+            format,
+            verbose,
+            no_progress,
+            fast_identify
+        } => {
+            let (format, copy_filter, copy_filter_file) = if
+            format.is_some() && (copy_filter.is_some() || copy_filter_file.is_some()) {
+                (format.unwrap(), copy_filter, copy_filter_file)
+            } else {
+                let file_info = identify(
+                    &bfs_name,
+                    no_progress,
+                    fast_identify,
+                );
+                let format = if let Some(format) = format {
+                    format
+                } else {
+                    if let Some(file_info) = file_info.clone() {
+                        Format::from_str(&file_info.format, false).unwrap()
+                    } else {
+                        println!("File not found in BFS file database.");
+                        println!("Please provide an appropriate format to use.");
+                        if fast_identify {
+                            println!("Try removing --fast-identify and running again.");
+                        }
+                        std::process::exit(1);
+                    }
+                };
+                let copy_filter = if copy_filter.is_some() {
+                    copy_filter
+                } else if copy_filter.is_none() && copy_filter_file.is_none() {
+                    if let Some(file_info) = file_info {
+                        Some(CopyFilter::from_str(&file_info.copy_filter, false).unwrap())
+                    } else {
+                        println!("File not found in BFS file database.");
+                        println!("Please provide an appropriate filter to use.");
+                        std::process::exit(1);
+                    }
+                } else {
+                    None
+                };
+                (format, copy_filter, copy_filter_file)
+            };
+
+            let bfs_file = BfsFile::read_bfs_from_file(
+                bfs_name.clone(),
+                format,
+            ).expect("Failed to open BFS file");
+
+            println!("Testing copy filters for archive: {}", bfs_name);
+
+            let mut file_names = bfs_file.get_file_name_to_header_map().keys().cloned().into_iter().collect::<Vec<String>>();
+            file_names.sort_unstable();
+            let file_headers = bfs_file.get_file_headers();
+
+            let file_copy_map = bfs_file.get_file_name_to_header_map().iter().map(|(file_name, header_index)| {
+                let file_header = file_headers.get(header_index.clone()).unwrap();
+                (file_name.clone(), file_header.get_file_copies_num())
+            }).collect::<HashMap<String, (u8, u16)>>();
+
+            let filters = load_copy_filters(copy_filter, copy_filter_file);
+
+            let filtered_file_copy_map = apply_copy_filters(file_names.clone(), filters);
+
+            if file_copy_map == filtered_file_copy_map {
+                println!("All files are matching the copy filter");
+            } else {
+                println!("Some files are not matching the copy filter");
+                if verbose {
+                    for file_name in file_names {
+                        let actual = file_copy_map.get(&file_name).unwrap();
+                        let expected =  filtered_file_copy_map.get(&file_name).unwrap();
+                        if actual != expected {
+                            println!(
+                                "{} is {}+{}, should be {}+{}",
+                                file_name,
+                                actual.0,
+                                actual.1,
+                                expected.0,
+                                expected.1
+                            );
                         }
                     }
                 } else {
