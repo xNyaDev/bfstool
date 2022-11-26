@@ -261,6 +261,7 @@ pub enum CopyFilter {
     None,
     Fo1Pc,
     Fo1Ps2,
+    Fo1Ps2Jp,
     Fo1Ps2Usa,
     Fo1Xbox,
     Fo2Pc,

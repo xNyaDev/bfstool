@@ -142,6 +142,7 @@ pub fn load_copy_filters(filter: Option<CopyFilter>, file: Option<String>) -> Ve
             CopyFilter::None => string_lines_to_vec(include_str!("copy_filters/none.txt").to_string()),
             CopyFilter::Fo1Pc => string_lines_to_vec(include_str!("copy_filters/fo1-pc.txt").to_string()),
             CopyFilter::Fo1Ps2 => string_lines_to_vec(include_str!("copy_filters/fo1-ps2.txt").to_string()),
+            CopyFilter::Fo1Ps2Jp => string_lines_to_vec(include_str!("copy_filters/fo1-ps2-jp.txt").to_string()),
             CopyFilter::Fo1Ps2Usa => string_lines_to_vec(include_str!("copy_filters/fo1-ps2-usa.txt").to_string()),
             CopyFilter::Fo1Xbox => string_lines_to_vec(include_str!("copy_filters/fo1-xbox.txt").to_string()),
             CopyFilter::Fo2Pc => string_lines_to_vec(include_str!("copy_filters/fo2-pc.txt").to_string()),
