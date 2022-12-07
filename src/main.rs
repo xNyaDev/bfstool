@@ -95,7 +95,7 @@ enum Commands {
         #[clap(value_parser = clap::value_parser ! (u32).range(0..=9), short, long)]
         level: Option<u32>,
         /// Filter for compression - You can either supply the filter name or a filter file
-        #[clap(long, value_enum, required_unless_present_any = ["filter-file", "version", "help"])]
+        #[clap(long, value_enum, required_unless_present_any = ["filter_file", "version", "help"])]
         filter: Option<Filter>,
         /// Filter file for compression
         #[clap(long, conflicts_with = "filter", required_unless_present_any = ["filter", "version", "help"])]
