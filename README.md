@@ -8,18 +8,19 @@ Support of unofficial archives is present on a best-effort basis and is not guar
 
 ## File format compatibility list
 
-| Game                      | Extracting | Archiving | Notes                                                                                 |
-|:--------------------------|:----------:|:---------:|:--------------------------------------------------------------------------------------|
-| Rally Trophy              |    N/A     |    N/A    | Files are not packed                                                                  |
-| Tough Trucks              |    N/A     |    N/A    | Files are not packed                                                                  |
-| FlatOut                   |     ✔      |     ✔     |                                                                                       |
-| Glimmerati                |    N/A     |    N/A    | Files are packed in standard ZIP files                                                |
-| FlatOut 2                 |     ✔      |     ✔     |                                                                                       |
-| FlatOut: Ultimate Carnage |     ✔      |     ✔     |                                                                                       |
-| FlatOut: Head On          |     ✔      |     ✔     |                                                                                       |
-| Sega Rally Revo           |     ✔      |     ✔     |                                                                                       |
-| Ridge Racer Unbounded     |     ✔      |  Partial  | BFS files are encrypted. See below for decrypting. Cannot be encrypted back currently |
-| Wreckfest                 |     ?      |     ?     | BFS files are encrypted                                                               |
+| Game                      | Extracting | Archiving | Notes                                                                                                          |
+|:--------------------------|:----------:|:---------:|:---------------------------------------------------------------------------------------------------------------|
+| Rally Trophy              |    N/A     |    N/A    | Files are not packed                                                                                           |
+| Tough Trucks              |    N/A     |    N/A    | Files are not packed                                                                                           |
+| FlatOut                   |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| Glimmerati                |    N/A     |    N/A    | Files are packed in standard ZIP files                                                                         |
+| FlatOut 2                 |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| FlatOut: Ultimate Carnage |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| FlatOut: Head On          |     ✔      |     ❌     | Game crashes when running with a file created by bfstool                                                       |
+| Sega Rally Revo           |     ✔      |     ❌     | Game crashes when running with a file created by bfstool                                                       |
+| Ridge Racer Unbounded     |     ✔      |     ❌     | BFS files are encrypted. Encryption is not supported. No guide for extracting encryption key from the game yet |
+| Ridge Racer Driftopia     |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
+| Wreckfest                 |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
 
 ## Examples
 
@@ -60,6 +61,8 @@ File name: FLATOUT.BFS
 Game: FlatOut
 Platform: PlayStation 2
 Format: v1
+Filter: fo1
+Copy filter: fo1-ps2-usa
 Source:
 - Redump (USA)
 - Non-Redump (Beta) (2005.03.23)
@@ -75,12 +78,13 @@ Perhaps it's a modded file or not yet supported by bfstool.
 ```
 Fast identify - the file name needs to be it's CRC32 and will be used for identification:
 ```console
-$ bfstool.exe id --fast-identify E2FA4AFC.bfs
+$ bfstool id --fast-identify E2FA4AFC.bfs
 Identifying archive: E2FA4AFC.bfs
 File name: common1.bfs
 Game: FlatOut
 Platform: PC
 Format: v1
+Copy filter: fo1-pc
 Filter: fo1
 Source:
 - All full PC releases
@@ -89,14 +93,14 @@ MD5: 95a606038261bfd36c6e48874e644c44
 SHA1: 51b6671ab55665521a29b010b86d53fb8d324967
 ```
 ```console
-$ bfstool.exe id --fast-identify common1.bfs
+$ bfstool id --fast-identify common1.bfs
 Identifying archive: common1.bfs
 File not found in the BFS file database.
 Perhaps it's a modded file or not yet supported by bfstool.
 Try removing --fast-identify and running again.
 ```
 
-If the file is present in bfs_file_dat.md, you don't need to specify the format for list, extract and dump subcommands
+If the file is present in bfs_file_dat.md, you don't need to specify the format for subcommands reading it, like list or extract
 ```console
 $ bfstool list europe.bfs
 Identifying archive: europe.bfs
