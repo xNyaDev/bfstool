@@ -9,10 +9,10 @@ use indicatif::ProgressBar;
 
 pub use structs::*;
 
+use crate::{apply_copy_filters, Format};
 use crate::archived_data::zlib_compress;
 use crate::bfs::BfsFileTrait;
 use crate::filter::apply_filters;
-use crate::Format;
 use crate::util::{AsBytes, FileHeaderTrait, lua_hash, sanitize_file_list, unique_file_names};
 use crate::v2::util::{create_huffman_tree, huffman_decode, huffman_encode, huffman_tree_to_map};
 
@@ -187,7 +187,7 @@ impl BfsFileTrait for V3BfsFile {
         Ok(result)
     }
 
-    fn archive(_: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, level: Option<u32>, bar: &ProgressBar) -> io::Result<()> {
+    fn archive(_: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar) -> io::Result<()> {
         let mut bfs_file = Self::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
@@ -202,11 +202,21 @@ impl BfsFileTrait for V3BfsFile {
         let filenames = sanitize_file_list(&format!("{}/", input_folder_path.replace("\\", "/")), input_files);
 
         let mut lua_hash_count_map = HashMap::new();
+        let mut lua_hash_header_size_map = HashMap::new();
         let mut lua_hash_files_map = HashMap::new();
+
+        let copy_filters = apply_copy_filters(
+            filenames.keys().cloned().collect(),
+            copy_filters,
+        );
 
         filenames.keys().cloned().for_each(|name| {
             let c_name = CString::new(name.clone()).unwrap();
             let hash = lua_hash(c_name.into_bytes());
+            let header_size = lua_hash_header_size_map.get(&hash).unwrap_or(&0).clone();
+            let (file_copies, file_copies_a) = copy_filters.get(&name).unwrap().clone();
+            let new_header_size = header_size + FileHeader::BYTE_COUNT as u32 + (file_copies as u32 * 4) + (file_copies_a as u32 * 4);
+            lua_hash_header_size_map.insert(hash, new_header_size);
             let count = lua_hash_count_map.get(&hash).unwrap_or(&0).clone();
             lua_hash_count_map.insert(hash, count + 1);
             let mut files = lua_hash_files_map.get(&hash).unwrap_or(&Vec::new()).clone();
@@ -263,7 +273,11 @@ impl BfsFileTrait for V3BfsFile {
                 bfs_file.file_name_huffman_data.len() as u32;
 
         let file_info_table_size = FileInfoTableEntry::BYTE_COUNT as u32 * 0x3E5;
-        let file_headers_size = FileHeader::BYTE_COUNT as u32 * bfs_file.bfs_header.file_count;
+        let mut file_headers_size = 0;
+        for hash in 0..0x3E5 {
+            let header_size = lua_hash_header_size_map.get(&hash).unwrap_or(&0).clone();
+            file_headers_size += header_size;
+        }
 
         bfs_file.bfs_header.data_offset = 0x80000000 |
             bfs_file.file_name_table_header.file_headers_offset +
@@ -278,6 +292,7 @@ impl BfsFileTrait for V3BfsFile {
 
         for hash in 0..0x3E5 {
             let file_count = lua_hash_count_map.get(&hash).unwrap_or(&0).clone();
+            let header_size = lua_hash_header_size_map.get(&hash).unwrap_or(&0).clone();
             bfs_file.file_info_table.push(
                 FileInfoTableEntry {
                     file_header_offset: if file_count == 0 {
@@ -288,7 +303,7 @@ impl BfsFileTrait for V3BfsFile {
                     file_count,
                 }
             );
-            header_offset += file_count * FileHeader::BYTE_COUNT as u32;
+            header_offset += header_size;
         }
 
         let file = File::create(bfs_file.bfs_file_path)?;
@@ -309,10 +324,12 @@ impl BfsFileTrait for V3BfsFile {
                     let mut file = File::open(original_file_path)?;
                     let mut data = Vec::new();
                     file.read_to_end(&mut data)?;
+                    let (file_copies, file_copies_a) = copy_filters.get(file_path).unwrap().clone();
+
                     let mut file_header = FileHeader {
                         method: 0,
-                        file_copies: 0,
-                        file_copies_a: 0,
+                        file_copies,
+                        file_copies_a,
                         data_offset: file_writer.stream_position()? as u32,
                         unpacked_size: data.len() as u32,
                         packed_size: 0,
@@ -330,11 +347,19 @@ impl BfsFileTrait for V3BfsFile {
                         file_header.method = 1; // zlib
                         let compressed_data = zlib_compress(data, level)?;
                         file_header.packed_size = io::copy(&mut compressed_data.as_slice(), &mut file_writer)? as u32;
+                        for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
+                            file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
+                            io::copy(&mut compressed_data.as_slice(), &mut file_writer)?;
+                        }
                         status = format!("{} -> {} bytes", file_header.unpacked_size, file_header.packed_size);
                     } else {
                         file_header.method = 0; // store
                         file_header.packed_size = file_header.unpacked_size;
                         io::copy(&mut data.as_slice(), &mut file_writer)?;
+                        for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
+                            file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
+                            io::copy(&mut data.as_slice(), &mut file_writer)?;
+                        }
                         status = format!("{} bytes", file_header.unpacked_size);
                     }
 

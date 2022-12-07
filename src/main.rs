@@ -100,6 +100,12 @@ enum Commands {
         /// Filter file for compression
         #[clap(long, conflicts_with = "filter", required_unless_present_any = ["filter", "version", "help"])]
         filter_file: Option<String>,
+        /// Copy filter for multiple file copies - You can either supply the filter name or a filter file
+        #[clap(long, value_enum, required_unless_present_any = ["copy_filter_file", "version", "help"])]
+        copy_filter: Option<CopyFilter>,
+        /// Copy filter file for multiple file copies
+        #[clap(long, conflicts_with = "copy_filter", required_unless_present_any = ["copy_filter", "version", "help"])]
+        copy_filter_file: Option<String>,
         /// File format
         #[clap(short, long, value_enum)]
         format: Format,
@@ -586,6 +592,8 @@ fn main() {
             level,
             filter,
             filter_file,
+            copy_filter,
+            copy_filter_file,
             format,
             verbose,
             no_progress
@@ -601,6 +609,7 @@ fn main() {
                 bar.set_style(ProgressStyle::default_bar().template("[{elapsed}] {wide_bar} [{pos}/{len}]").unwrap().progress_chars("##-"));
 
                 let filters = load_filters(filter, filter_file);
+                let copy_filters = load_copy_filters(copy_filter, copy_filter_file);
 
                 BfsFile::archive(
                     format,
@@ -609,6 +618,7 @@ fn main() {
                     input_files,
                     verbose,
                     filters,
+                    copy_filters,
                     level,
                     &bar,
                 ).expect("Failed to archive BFS file");
