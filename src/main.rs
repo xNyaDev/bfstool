@@ -16,7 +16,7 @@ use crate::bfs::{BfsFile, BfsFileTrait};
 use crate::crypt::{create_key, decrypt_headers_block, read_and_decrypt_block};
 use crate::Endianness::{Be, Le};
 use crate::filter::{apply_copy_filters, apply_filters, apply_single_filter, load_copy_filters, load_filters};
-use crate::identify::identify;
+use crate::identify::{identify, identify_format};
 use crate::key_parser::KeyValueParser;
 use crate::util::{list_files_recursively, string_lines_to_vec, u32_from_be_bytes, u32_from_le_bytes, write_data_to_file_endian};
 
@@ -317,24 +317,7 @@ fn main() {
             no_progress,
             fast_identify
         } => {
-            let format = if let Some(format) = format {
-                format
-            } else {
-                if let Some(file_info) = identify(
-                    &bfs_name,
-                    no_progress,
-                    fast_identify,
-                ) {
-                    Format::from_str(&file_info.format, false).unwrap()
-                } else {
-                    println!("File not found in BFS file database.");
-                    println!("Please provide an appropriate format to use.");
-                    if fast_identify {
-                        println!("Try removing --fast-identify and running again.");
-                    }
-                    std::process::exit(1);
-                }
-            };
+            let format = identify_format(&bfs_name, no_progress, fast_identify, format);
             let bfs_file = BfsFile::read_bfs_from_file(
                 bfs_name.clone(),
                 format,
@@ -519,24 +502,7 @@ fn main() {
             no_progress,
             fast_identify
         } => {
-            let format = if let Some(format) = format {
-                format
-            } else {
-                if let Some(file_info) = identify(
-                    &bfs_name,
-                    no_progress,
-                    fast_identify,
-                ) {
-                    Format::from_str(&file_info.format, false).unwrap()
-                } else {
-                    println!("File not found in BFS file database.");
-                    println!("Please provide an appropriate format to use.");
-                    if fast_identify {
-                        println!("Try removing --fast-identify and running again.");
-                    }
-                    std::process::exit(1);
-                }
-            };
+            let format = identify_format(&bfs_name, no_progress, fast_identify, format);
             let bfs_file = BfsFile::read_bfs_from_file(
                 bfs_name.clone(),
                 format,
@@ -700,34 +666,19 @@ fn main() {
             format.is_some() && (filter.is_some() || filter_file.is_some()) {
                 (format.unwrap(), filter, filter_file)
             } else {
+                let format = identify_format(&bfs_name, no_progress, fast_identify, format);
                 let file_info = identify(
                     &bfs_name,
                     no_progress,
                     fast_identify,
                 );
-                let format = if let Some(format) = format {
-                    format
-                } else {
-                    if let Some(file_info) = file_info.clone() {
-                        Format::from_str(&file_info.format, false).unwrap()
-                    } else {
-                        println!("File not found in BFS file database.");
-                        println!("Please provide an appropriate format to use.");
-                        if fast_identify {
-                            println!("Try removing --fast-identify and running again.");
-                        }
-                        std::process::exit(1);
-                    }
-                };
                 let filter = if filter.is_some() {
                     filter
                 } else if filter.is_none() && filter_file.is_none() {
                     if let Some(file_info) = file_info {
                         Some(Filter::from_str(&file_info.filter, false).unwrap())
                     } else {
-                        println!("File not found in BFS file database.");
-                        println!("Please provide an appropriate filter to use.");
-                        std::process::exit(1);
+                        None
                     }
                 } else {
                     None
@@ -811,34 +762,19 @@ fn main() {
             format.is_some() && (copy_filter.is_some() || copy_filter_file.is_some()) {
                 (format.unwrap(), copy_filter, copy_filter_file)
             } else {
+                let format = identify_format(&bfs_name, no_progress, fast_identify, format);
                 let file_info = identify(
                     &bfs_name,
                     no_progress,
                     fast_identify,
                 );
-                let format = if let Some(format) = format {
-                    format
-                } else {
-                    if let Some(file_info) = file_info.clone() {
-                        Format::from_str(&file_info.format, false).unwrap()
-                    } else {
-                        println!("File not found in BFS file database.");
-                        println!("Please provide an appropriate format to use.");
-                        if fast_identify {
-                            println!("Try removing --fast-identify and running again.");
-                        }
-                        std::process::exit(1);
-                    }
-                };
                 let copy_filter = if copy_filter.is_some() {
                     copy_filter
                 } else if copy_filter.is_none() && copy_filter_file.is_none() {
                     if let Some(file_info) = file_info {
                         Some(CopyFilter::from_str(&file_info.copy_filter, false).unwrap())
                     } else {
-                        println!("File not found in BFS file database.");
-                        println!("Please provide an appropriate filter to use.");
-                        std::process::exit(1);
+                        None
                     }
                 } else {
                     None
@@ -873,7 +809,7 @@ fn main() {
                 if verbose {
                     for file_name in file_names {
                         let actual = file_copy_map.get(&file_name).unwrap();
-                        let expected =  filtered_file_copy_map.get(&file_name).unwrap();
+                        let expected = filtered_file_copy_map.get(&file_name).unwrap();
                         if actual != expected {
                             println!(
                                 "{} is {}+{}, should be {}+{}",
@@ -1009,19 +945,19 @@ fn main() {
                     write_data_to_file_endian(
                         &mut output_file_writer,
                         decrypted_data.drain(0..5).collect(),
-                        data_mode
+                        data_mode,
                     ).expect("Failed to write to output file");
 
                     write_data_to_file_endian(
                         &mut output_file_writer,
                         header_data,
-                        data_mode
+                        data_mode,
                     ).expect("Failed to write to output file");
 
                     write_data_to_file_endian(
                         &mut output_file_writer,
                         decrypted_data,
-                        data_mode
+                        data_mode,
                     ).expect("Failed to write to output file");
 
                     bar.inc(decrypted_index as u64);
@@ -1031,7 +967,7 @@ fn main() {
                         write_data_to_file_endian(
                             &mut output_file_writer,
                             block_vec,
-                            data_mode
+                            data_mode,
                         ).expect("Failed to write to output file");
                         bar.inc(0x8000);
                     }
@@ -1050,24 +986,7 @@ fn main() {
             no_progress,
             fast_identify
         } => {
-            let format = if let Some(format) = format {
-                format
-            } else {
-                if let Some(file_info) = identify(
-                    &bfs_name,
-                    no_progress,
-                    fast_identify,
-                ) {
-                    Format::from_str(&file_info.format, false).unwrap()
-                } else {
-                    println!("File not found in BFS file database.");
-                    println!("Please provide an appropriate format to use.");
-                    if fast_identify {
-                        println!("Try removing --fast-identify and running again.");
-                    }
-                    std::process::exit(1);
-                }
-            };
+            let format = identify_format(&bfs_name, no_progress, fast_identify, format);
             let bfs_file = BfsFile::read_bfs_from_file(
                 bfs_name.clone(),
                 format,

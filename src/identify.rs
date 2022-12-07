@@ -4,9 +4,12 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::PathBuf;
 
+use clap::ValueEnum;
 use crc::{Crc, CRC_32_ISO_HDLC};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
+
+use crate::Format;
 
 #[derive(Clone, Deserialize)]
 pub struct FileInfo {
@@ -20,6 +23,33 @@ pub struct FileInfo {
     pub crc32: String,
     pub md5: String,
     pub sha1: String,
+}
+
+pub fn identify_format(bfs_name: &String, no_progress: bool, fast_identify: bool, format: Option<Format>) -> Format {
+    if let Some(format) = format {
+        format
+    } else {
+        if let Some(file_info) = identify(
+            &bfs_name,
+            no_progress,
+            fast_identify,
+        ) {
+            if file_info.format == "N/A (Encrypted)" {
+                println!("BFS file is encrypted, decrypt it before using.");
+                println!("See README.md on details how to decrypt.");
+                std::process::exit(1);
+            } else {
+                Format::from_str(&file_info.format, false).unwrap()
+            }
+        } else {
+            println!("File not found in BFS file database.");
+            println!("Please provide an appropriate format to use.");
+            if fast_identify {
+                println!("Try removing --fast-identify and running again.");
+            }
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn identify(bfs_name: &String, no_progress: bool, fast_identify: bool) -> Option<FileInfo> {
