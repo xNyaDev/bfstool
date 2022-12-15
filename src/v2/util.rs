@@ -108,10 +108,17 @@ pub fn create_huffman_tree(names: Vec<String>) -> Vec<u8> {
         );
         internal_node_id += 1;
     }
-    let tree = trees.get(0).unwrap().clone();
-    serialize(tree)
+    let mut tree = trees.get(0).unwrap().clone();
+    let serialized = serialize(&tree);
+    let mut index_map = HashMap::new();
+    for i in (0..serialized.len()).step_by(2) {
+        index_map.insert((serialized[i], serialized[i + 1]), (i / 2) as u8);
+    }
+    set_internal_node_values(&mut tree, &index_map);
+    serialize(&tree)
 }
 
+#[derive(Clone)]
 struct Tree {
     pub huffman_tree_entry: HuffmanTreeEntry,
     pub frequency: u32,
@@ -130,4 +137,18 @@ fn serialize(tree: &Tree) -> Vec<u8> {
         serialized.append(&mut right_vec);
     }
     serialized
+}
+
+fn set_internal_node_values(tree: &mut Tree, index_map: &HashMap<(u8, u8), u8>) {
+    if tree.huffman_tree_entry.node_type == 0 {
+        let right_node = tree.right_node.as_ref().unwrap();
+        tree.huffman_tree_entry.value = index_map.get(
+            &(
+                right_node.huffman_tree_entry.value,
+                right_node.huffman_tree_entry.node_type
+            )
+        ).unwrap().clone();
+        set_internal_node_values(tree.left_node.as_mut().unwrap(), &index_map);
+        set_internal_node_values(tree.right_node.as_mut().unwrap(), &index_map);
+    }
 }

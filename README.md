@@ -16,8 +16,8 @@ Support of unofficial archives is present on a best-effort basis and is not guar
 | Glimmerati                |    N/A     |    N/A    | Files are packed in standard ZIP files                                                                         |
 | FlatOut 2                 |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
 | FlatOut: Ultimate Carnage |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
-| FlatOut: Head On          |     ✔      |     ❌     | Game crashes when running with a file created by bfstool                                                       |
-| Sega Rally Revo           |     ✔      |     ❌     | Game crashes when running with a file created by bfstool                                                       |
+| FlatOut: Head On          |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| Sega Rally Revo           |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
 | Ridge Racer Unbounded     |     ✔      |     ❌     | BFS files are encrypted. Encryption is not supported. No guide for extracting encryption key from the game yet |
 | Ridge Racer Driftopia     |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
 | Wreckfest                 |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
