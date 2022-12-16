@@ -75,6 +75,14 @@ impl BfsFileTrait for BfsFile {
             BfsFile::V3BfsFile(bfs_file) => bfs_file.get_file_name_to_header_map(),
         }
     }
+
+    fn get_file_version(&self) -> u32 {
+        match self {
+            BfsFile::V1BfsFile(bfs_file) => bfs_file.get_file_version(),
+            BfsFile::V2BfsFile(bfs_file) => bfs_file.get_file_version(),
+            BfsFile::V3BfsFile(bfs_file) => bfs_file.get_file_version(),
+        }
+    }
 }
 
 pub trait BfsFileTrait: Sized {
@@ -84,4 +92,5 @@ pub trait BfsFileTrait: Sized {
     fn get_data_offset(&self) -> u32;
     fn get_file_headers(&self) -> Vec<Box<dyn FileHeaderTrait>>;
     fn get_file_name_to_header_map(&self) -> &HashMap<String, usize>;
+    fn get_file_version(&self) -> u32;
 }

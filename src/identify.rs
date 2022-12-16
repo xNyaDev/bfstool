@@ -19,6 +19,7 @@ pub struct FileInfo {
     pub format: String,
     pub filter: String,
     pub copy_filter: String,
+    pub file_version: String,
     pub source: String,
     pub crc32: String,
     pub md5: String,

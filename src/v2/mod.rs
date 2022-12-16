@@ -453,4 +453,8 @@ impl BfsFileTrait for V2BfsFile {
     fn get_file_name_to_header_map(&self) -> &HashMap<String, usize> {
         &self.file_name_to_header_map
     }
+
+    fn get_file_version(&self) -> u32 {
+        self.bfs_header.file_version
+    }
 }

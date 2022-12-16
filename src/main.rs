@@ -410,6 +410,14 @@ fn main() {
                 println!("Physical size: {}", fs::metadata(&bfs_name).unwrap().len());
                 println!("Headers size: {}", bfs_file.get_data_offset() - 1);
                 println!("File count: {}", files.len());
+                let version = bfs_file.get_file_version().to_le_bytes();
+                println!(
+                    "File version: {:02x}{:02x}{:02x}{:02x}",
+                    version[0],
+                    version[1],
+                    version[2],
+                    version[3]
+                );
             }
 
             let mut files = files;

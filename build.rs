@@ -45,10 +45,11 @@ fn main() -> io::Result<()> {
             format: file_info_vec.get(3).cloned().unwrap_or_default(),
             filter: file_info_vec.get(4).cloned().unwrap_or_default(),
             copy_filter: file_info_vec.get(5).cloned().unwrap_or_default(),
-            source: file_info_vec.get(6).cloned().unwrap_or_default(),
-            crc32: file_info_vec.get(8).cloned().unwrap_or_default(),
-            md5: file_info_vec.get(9).cloned().unwrap_or_default(),
-            sha1: file_info_vec.get(10).cloned().unwrap_or_default(),
+            file_version: file_info_vec.get(6).cloned().unwrap_or_default(),
+            source: file_info_vec.get(7).cloned().unwrap_or_default(),
+            crc32: file_info_vec.get(9).cloned().unwrap_or_default(),
+            md5: file_info_vec.get(10).cloned().unwrap_or_default(),
+            sha1: file_info_vec.get(11).cloned().unwrap_or_default(),
         };
         (file_info.crc32.clone(), file_info)
     }).collect::<HashMap<String, FileInfo>>();
