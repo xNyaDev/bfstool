@@ -1,5 +1,5 @@
 # BFS file database
-This file contains a list of all<sup>12</sup> official BFS files, their CRC32, SHA1 and MD5 as well as where are they from.
+This file contains a list of all<sup>12</sup> official<sup>3</sup> BFS files, their CRC32, SHA1 and MD5 as well as where are they from.
 It is used as the source for the `identify` subcommand.
 
 1. Only files that are currently supported by bfstool are listed.
@@ -7,6 +7,8 @@ It is used as the source for the `identify` subcommand.
    - FlatOut 1 - PC: Non-Redump (Italy) (FX Interactive)
    - FlatOut 1 - PC: Non-Redump (Spain) (FX Interactive)
    - FlatOut 2 - PC: Non-Redump (Spain) (FX Interactive)
+3. FlatOut 2 - PC: Non-Redump (Italy) (FX Interactive) is not confirmed to be official - patch files have a version of
+   `00000000` and none of the files inside are compressed.
 
 If there is a file missing, and you would like to add it, please contact me privately. Only verified (preferably [Redump](http://redump.org/guide/)) official files will be accepted.
 
