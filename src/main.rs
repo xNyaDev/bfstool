@@ -18,6 +18,7 @@ use crate::Endianness::{Be, Le};
 use crate::filter::{apply_copy_filters, apply_filters, apply_single_filter, load_copy_filters, load_filters};
 use crate::identify::{identify, identify_format};
 use crate::key_parser::KeyValueParser;
+use crate::version_parser::VersionValueParser;
 use crate::util::{list_files_recursively, string_lines_to_vec, u32_from_be_bytes, u32_from_le_bytes, write_data_to_file_endian};
 
 mod bfs;
@@ -30,6 +31,7 @@ mod identify;
 mod v3;
 mod crypt;
 mod key_parser;
+mod version_parser;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -109,6 +111,9 @@ enum Commands {
         /// File format
         #[clap(short, long, value_enum)]
         format: Format,
+        /// BFS archive version
+        #[clap(long, value_parser = VersionValueParser::new())]
+        file_version: [u8; 4],
         /// Print more info
         #[clap(short, long)]
         verbose: bool,
@@ -595,6 +600,7 @@ fn main() {
             copy_filter,
             copy_filter_file,
             format,
+            file_version: version,
             verbose,
             no_progress
         } => {
@@ -621,6 +627,7 @@ fn main() {
                     copy_filters,
                     level,
                     &bar,
+                    version,
                 ).expect("Failed to archive BFS file");
 
                 bar.finish_and_clear();

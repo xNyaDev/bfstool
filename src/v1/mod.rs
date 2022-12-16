@@ -156,11 +156,11 @@ impl BfsFileTrait for V1BfsFile {
         Ok(result)
     }
 
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar) -> io::Result<()> {
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4]) -> io::Result<()> {
         let mut bfs_file = V1BfsFile::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
-        bfs_file.bfs_header.writing_library = 0x61794E78; // "xNya"
+        bfs_file.bfs_header.file_version = u32::from_le_bytes(file_version);
         bfs_file.file_info_table_entry_count = 0x3E5; // Always 0x3E5 entries
 
         bfs_file.bfs_file_path = bfs_path;

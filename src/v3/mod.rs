@@ -187,12 +187,12 @@ impl BfsFileTrait for V3BfsFile {
         Ok(result)
     }
 
-    fn archive(_: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar) -> io::Result<()> {
+    fn archive(_: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4]) -> io::Result<()> {
         let mut bfs_file = Self::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
         bfs_file.bfs_header.unknown = 1;
-        bfs_file.bfs_header.writing_library = 0x61794E78; // "xNya"
+        bfs_file.bfs_header.file_version = u32::from_le_bytes(file_version);
         bfs_file.bfs_header.file_info_table_entry_count = 0x3E5; // Always 0x3E5 entries
 
         bfs_file.bfs_file_path = bfs_path;
