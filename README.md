@@ -10,9 +10,9 @@ Support of unofficial archives is present on a best-effort basis and is not guar
 
 | Game                      | Extracting | Archiving | Notes                                                                                                          |
 |:--------------------------|:----------:|:---------:|:---------------------------------------------------------------------------------------------------------------|
-| Rally Trophy              |    N/A     |    N/A    | Files are not packed                                                                                           |
-| Tough Trucks              |    N/A     |    N/A    | Files are not packed                                                                                           |
-| FlatOut                   |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| Rally Trophy              |     ❌      |     ❌     |                                                                                                                |
+| Tough Trucks              |     ❌      |     ❌     |                                                                                                                |
+| FlatOut                   |  Partial   |     ?     | No support for bzf files <br> Running with files created by bfstool is not extensively tested                  |
 | Glimmerati                |    N/A     |    N/A    | Files are packed in standard ZIP files                                                                         |
 | FlatOut 2                 |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
 | FlatOut: Ultimate Carnage |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
