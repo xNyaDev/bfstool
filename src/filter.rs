@@ -29,6 +29,7 @@ pub fn load_filters(filter: Option<Filter>, file: Option<String>) -> Vec<String>
             Filter::Foho => string_lines_to_vec(include_str!("filters/foho.txt").to_string()),
             Filter::Srr => string_lines_to_vec(include_str!("filters/srr.txt").to_string()),
             Filter::Rru => string_lines_to_vec(include_str!("filters/rru.txt").to_string()),
+            Filter::Fo2PcModLoader => string_lines_to_vec(include_str!("filters/fo2-pc-modloader.txt").to_string()),
         }
     }
 }
@@ -161,7 +162,7 @@ pub fn load_copy_filters(filter: Option<CopyFilter>, file: Option<String>) -> Ve
             CopyFilter::Foho => string_lines_to_vec(include_str!("copy_filters/foho.txt").to_string()),
             CopyFilter::Srr => string_lines_to_vec(include_str!("copy_filters/srr.txt").to_string()),
             CopyFilter::Rru => string_lines_to_vec(include_str!("copy_filters/rru.txt").to_string()),
-            CopyFilter::RruPcUpdate => string_lines_to_vec(include_str!("copy_filters/rru-pc-update.txt").to_string()),
+            CopyFilter::RruPcUpdate => string_lines_to_vec(include_str!("copy_filters/rru-pc-update.txt").to_string())
         }
     }
 }

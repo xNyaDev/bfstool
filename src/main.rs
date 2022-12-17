@@ -266,6 +266,7 @@ pub enum Filter {
     Foho,
     Srr,
     Rru,
+    Fo2PcModLoader,
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]
@@ -291,7 +292,7 @@ pub enum CopyFilter {
     Foho,
     Srr,
     Rru,
-    RruPcUpdate,
+    RruPcUpdate
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]

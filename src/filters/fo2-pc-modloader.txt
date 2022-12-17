@@ -1,0 +1,5 @@
+# For Reloaded's ModLoader Mod; which includes support for loading more files compressed.
++ **
+- data/video/*
+- data/menu/*.tga
+- data/icon/flatout.ico
