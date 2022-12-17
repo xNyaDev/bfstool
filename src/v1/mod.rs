@@ -255,7 +255,7 @@ impl BfsFileTrait for V1BfsFile {
             current_file_header_offset += FileHeader::BYTE_COUNT as u32 +
                 file_name.len() as u32;
 
-            let (file_copies, file_copies_a) = copy_filters.get(file_path).unwrap().clone();
+            let (file_copies, file_copies_a) = copy_filters.get(file_name).unwrap().clone();
 
             let mut file_header = FileHeader {
                 method: 0,
