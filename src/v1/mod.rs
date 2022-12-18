@@ -188,18 +188,21 @@ impl BfsFileTrait for V1BfsFile {
             lua_hash_count_map.insert(hash, count + 1);
         });
 
+        let mut file_count_so_far = 0;
+
         for hash in 0..bfs_file.file_info_table_entry_count {
             let file_count = lua_hash_count_map.get(&hash).unwrap_or(&0).clone();
             bfs_file.file_info_table.push(
                 FileInfoTableEntry {
-                    hash: if file_count == 0 {
+                    starting_file: if file_count == 0 {
                         0
                     } else {
-                        hash as u16
+                        file_count_so_far
                     },
                     file_count,
                 }
-            )
+            );
+            file_count_so_far += file_count;
         }
 
         // Calculate the end offset for headers
