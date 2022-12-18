@@ -169,6 +169,7 @@ impl BfsFileTrait for V1BfsFile {
 
         let file_names = sanitize_file_list(&format!("{}/", input_folder_path.replace("\\", "/")), input_files);
 
+        let mut name_lua_hash_map = HashMap::new();
         let mut lua_hash_count_map = HashMap::new();
         let mut lua_hash_header_size_map = HashMap::new();
 
@@ -180,6 +181,7 @@ impl BfsFileTrait for V1BfsFile {
         file_names.keys().cloned().for_each(|name| {
             let c_name = CString::new(name.clone()).unwrap();
             let hash = lua_hash(c_name.into_bytes());
+            name_lua_hash_map.insert(name.clone(), hash);
             let header_size = lua_hash_header_size_map.get(&hash).unwrap_or(&0).clone();
             let (file_copies, file_copies_a) = copy_filters.get(&name).unwrap().clone();
             let new_header_size = header_size + FileHeader::BYTE_COUNT as u32 + (file_copies as u32 * 4) + (file_copies_a as u32 * 4);
@@ -248,10 +250,16 @@ impl BfsFileTrait for V1BfsFile {
         sorted_file_names.sort_unstable();
         let mut current_file_header_offset = file_header_start_offset;
 
+        let mut hash_header_offsets_map = HashMap::new();
+
         for sorted_file_name_index in 0..sorted_file_names.len() {
-            bfs_file.file_header_offset_table.push(current_file_header_offset);
             let file_name = sorted_file_names.get(sorted_file_name_index).unwrap();
             let file_path = file_names.get(file_name).unwrap();
+
+            let hash = name_lua_hash_map.get(file_name).unwrap().clone();
+            let mut headers_for_hash = hash_header_offsets_map.get(&hash).unwrap_or(&Vec::new()).clone();
+            headers_for_hash.push(current_file_header_offset);
+            hash_header_offsets_map.insert(hash, headers_for_hash);
 
             let mut file = File::open(file_path)?;
             let mut data = Vec::new();
@@ -321,6 +329,13 @@ impl BfsFileTrait for V1BfsFile {
                 bar.println(format!("{file_name:?} {status}"));
             }
             bar.inc(1);
+        }
+
+        for hash in 0..0x3E5 {
+            let headers_for_hash = hash_header_offsets_map.get(&hash).unwrap_or(&Vec::new()).clone();
+            for offset in headers_for_hash {
+                bfs_file.file_header_offset_table.push(offset);
+            }
         }
 
         if verbose {
