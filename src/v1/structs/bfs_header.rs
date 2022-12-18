@@ -11,7 +11,7 @@ pub struct BfsHeader {
     pub file_version: u32,
 
     /// Offset at which file headers + names end, there may be some null bytes after this before
-    /// the actual data begins
+    /// the actual data begins - enough to get to the nearest full u32.
     ///
     /// Offset from `0h`
     pub data_offset: u32,

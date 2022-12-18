@@ -230,8 +230,10 @@ impl BfsFileTrait for V1BfsFile {
         let file = File::create(bfs_file.bfs_file_path)?;
         let mut file_writer = BufWriter::new(file);
 
+        let data_start = (bfs_file.bfs_header.data_offset as usize + 3) & !3;
+
         // Empty values where the metadata will be later
-        file_writer.write_all(&vec![0u8; bfs_file.bfs_header.data_offset as usize])?;
+        file_writer.write_all(&vec![0u8; data_start])?;
 
         let files_to_compress = apply_filters(
             file_names.keys().cloned().collect(),
