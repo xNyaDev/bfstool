@@ -169,6 +169,7 @@ impl BfsFileTrait for V1BfsFile {
 
         let file_names = sanitize_file_list(&format!("{}/", input_folder_path.replace("\\", "/")), input_files);
 
+        let mut name_lua_hash_map = HashMap::new();
         let mut lua_hash_count_map = HashMap::new();
         let mut lua_hash_header_size_map = HashMap::new();
 
@@ -180,6 +181,7 @@ impl BfsFileTrait for V1BfsFile {
         file_names.keys().cloned().for_each(|name| {
             let c_name = CString::new(name.clone()).unwrap();
             let hash = lua_hash(c_name.into_bytes());
+            name_lua_hash_map.insert(name.clone(), hash);
             let header_size = lua_hash_header_size_map.get(&hash).unwrap_or(&0).clone();
             let (file_copies, file_copies_a) = copy_filters.get(&name).unwrap().clone();
             let new_header_size = header_size + FileHeader::BYTE_COUNT as u32 + (file_copies as u32 * 4) + (file_copies_a as u32 * 4);
@@ -188,18 +190,21 @@ impl BfsFileTrait for V1BfsFile {
             lua_hash_count_map.insert(hash, count + 1);
         });
 
+        let mut file_count_so_far = 0;
+
         for hash in 0..bfs_file.file_info_table_entry_count {
             let file_count = lua_hash_count_map.get(&hash).unwrap_or(&0).clone();
             bfs_file.file_info_table.push(
                 FileInfoTableEntry {
-                    hash: if file_count == 0 {
+                    starting_file: if file_count == 0 {
                         0
                     } else {
-                        hash as u16
+                        file_count_so_far
                     },
                     file_count,
                 }
-            )
+            );
+            file_count_so_far += file_count;
         }
 
         // Calculate the end offset for headers
@@ -227,8 +232,10 @@ impl BfsFileTrait for V1BfsFile {
         let file = File::create(bfs_file.bfs_file_path)?;
         let mut file_writer = BufWriter::new(file);
 
+        let data_start = (bfs_file.bfs_header.data_offset as usize + 3) & !3;
+
         // Empty values where the metadata will be later
-        file_writer.write_all(&vec![0u8; bfs_file.bfs_header.data_offset as usize])?;
+        file_writer.write_all(&vec![0u8; data_start])?;
 
         let files_to_compress = apply_filters(
             file_names.keys().cloned().collect(),
@@ -243,10 +250,16 @@ impl BfsFileTrait for V1BfsFile {
         sorted_file_names.sort_unstable();
         let mut current_file_header_offset = file_header_start_offset;
 
+        let mut hash_header_offsets_map = HashMap::new();
+
         for sorted_file_name_index in 0..sorted_file_names.len() {
-            bfs_file.file_header_offset_table.push(current_file_header_offset);
             let file_name = sorted_file_names.get(sorted_file_name_index).unwrap();
             let file_path = file_names.get(file_name).unwrap();
+
+            let hash = name_lua_hash_map.get(file_name).unwrap().clone();
+            let mut headers_for_hash = hash_header_offsets_map.get(&hash).unwrap_or(&Vec::new()).clone();
+            headers_for_hash.push(current_file_header_offset);
+            hash_header_offsets_map.insert(hash, headers_for_hash);
 
             let mut file = File::open(file_path)?;
             let mut data = Vec::new();
@@ -255,7 +268,7 @@ impl BfsFileTrait for V1BfsFile {
             current_file_header_offset += FileHeader::BYTE_COUNT as u32 +
                 file_name.len() as u32;
 
-            let (file_copies, file_copies_a) = copy_filters.get(file_path).unwrap().clone();
+            let (file_copies, file_copies_a) = copy_filters.get(file_name).unwrap().clone();
 
             let mut file_header = FileHeader {
                 method: 0,
@@ -316,6 +329,13 @@ impl BfsFileTrait for V1BfsFile {
                 bar.println(format!("{file_name:?} {status}"));
             }
             bar.inc(1);
+        }
+
+        for hash in 0..0x3E5 {
+            let headers_for_hash = hash_header_offsets_map.get(&hash).unwrap_or(&Vec::new()).clone();
+            for offset in headers_for_hash {
+                bfs_file.file_header_offset_table.push(offset);
+            }
         }
 
         if verbose {

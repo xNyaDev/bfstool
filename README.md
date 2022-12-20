@@ -8,19 +8,22 @@ Support of unofficial archives is present on a best-effort basis and is not guar
 
 ## File format compatibility list
 
-| Game                      | Extracting | Archiving | Notes                                                                                                          |
-|:--------------------------|:----------:|:---------:|:---------------------------------------------------------------------------------------------------------------|
-| Rally Trophy              |     ❌      |     ❌     |                                                                                                                |
-| Tough Trucks              |     ❌      |     ❌     |                                                                                                                |
-| FlatOut                   |  Partial   |     ?     | No support for bzf files <br> Running with files created by bfstool is not extensively tested                  |
-| Glimmerati                |    N/A     |    N/A    | Files are packed in standard ZIP files                                                                         |
-| FlatOut 2                 |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
-| FlatOut: Ultimate Carnage |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
-| FlatOut: Head On          |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
-| Sega Rally Revo           |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
-| Ridge Racer Unbounded     |     ✔      |     ❌     | BFS files are encrypted. Encryption is not supported. No guide for extracting encryption key from the game yet |
-| Ridge Racer Driftopia     |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
-| Wreckfest                 |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
+| Game                                    | Extracting | Archiving | Notes                                                                                                          |
+|:----------------------------------------|:----------:|:---------:|:---------------------------------------------------------------------------------------------------------------|
+| Rally Trophy                            |     ❌      |     ❌     |                                                                                                                |
+| Tough Trucks                            |     ❌      |     ❌     |                                                                                                                |
+| Bugbear Retro Demo 2002                 |     ❌      |     ❌     |                                                                                                                |
+| FlatOut                                 |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| Glimmerati                              |    N/A     |    N/A    | Files are packed in standard ZIP files                                                                         |
+| FlatOut 2                               |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| FlatOut: Ultimate Carnage               |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| FlatOut: Head On                        |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| Sega Rally Revo                         |     ✔      |     ?     | Running with files created by bfstool is not extensively tested                                                |
+| Ridge Racer Unbounded                   |     ✔      |     ❌     | BFS files are encrypted. Encryption is not supported. No guide for extracting encryption key from the game yet |
+| Ridge Racer Driftopia                   |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
+| Next Car Game Free Technology Demo      |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
+| Next Car Game Technology Sneak Peek 2.0 |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
+| Wreckfest                               |     ❌      |     ❌     | BFS files are encrypted. Encryption/decryption is not supported                                                |
 
 ## Examples
 
