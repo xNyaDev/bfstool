@@ -120,6 +120,9 @@ enum Commands {
         /// Suppress progress bar
         #[clap(short = 'q', long)]
         no_progress: bool,
+        /// Stores all files with matching hash only once
+        #[clap(long)]
+        deduplicate: bool,
     },
     /// Identify an unknown BFS file using file hashes from bfs_file_dat.md
     #[clap(visible_alias = "i", visible_alias = "id", visible_alias = "info")]
@@ -611,7 +614,8 @@ fn main() {
             format,
             file_version: version,
             verbose,
-            no_progress
+            no_progress,
+            deduplicate
         } => {
             let input_files = list_files_recursively(input_folder.clone());
 
@@ -637,6 +641,7 @@ fn main() {
                     level,
                     &bar,
                     version,
+                    deduplicate
                 ).expect("Failed to archive BFS file");
 
                 bar.finish_and_clear();

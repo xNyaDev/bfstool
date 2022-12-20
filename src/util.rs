@@ -20,6 +20,7 @@ pub trait FileHeaderTrait {
     fn get_packed_size(&self) -> u32;
     fn get_file_copies_offsets(&self) -> Vec<u32>;
     fn get_file_copies_num(&self) -> (u8, u16);
+    fn is_compressed(&self) -> bool;
 }
 
 /// Modified Lua 4.0 string hash function
