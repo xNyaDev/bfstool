@@ -7,11 +7,12 @@ use std::mem::size_of;
 
 use crc::{Crc, CRC_32_JAMCRC};
 use indicatif::ProgressBar;
+use lz4::EncoderBuilder;
 use xxhash_rust::xxh64::xxh64;
 
 pub use structs::*;
 
-use crate::{apply_copy_filters, Format};
+use crate::{apply_copy_filters, Compression, Format};
 use crate::archived_data::zlib_compress;
 use crate::bfs::BfsFileTrait;
 use crate::filter::apply_filters;
@@ -211,7 +212,7 @@ impl BfsFileTrait for V2BfsFile {
         Ok(result)
     }
 
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool) -> io::Result<()> {
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool, compression: Compression) -> io::Result<()> {
         let mut bfs_file = Self::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
@@ -393,16 +394,16 @@ impl BfsFileTrait for V2BfsFile {
                                 status = format!("{} bytes, deduplicated", file_header.packed_size);
                             }
                             else {
-                                Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
+                                Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression)?;
                             }
                         }
                         else {
-                            Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
+                            Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression)?;
                             dedupe_hash_to_header.insert(dedupe_hash, file_header.clone());
                         }
                     }
                     else {
-                        Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
+                        Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression)?;
                     }
                     
                     if verbose {
@@ -467,17 +468,43 @@ impl BfsFileTrait for V2BfsFile {
 }
 
 impl V2BfsFile {
-    fn write_file_to_output(format: &Format, level: Option<u32>, mut file_writer: &mut BufWriter<File>, 
-                            files_to_compress: &Vec<String>, file_path: &String, data: Vec<u8>, 
-                            file_header: &mut FileHeader, status: &mut String) -> io::Result<()> {
+    fn write_file_to_output(format: &Format, level: Option<u32>, mut file_writer: &mut BufWriter<File>,
+                            files_to_compress: &Vec<String>, file_path: &String, data: Vec<u8>,
+                            file_header: &mut FileHeader, status: &mut String,
+                            compression: Compression) -> io::Result<()> {
         
         if Self::should_compress_file(level, files_to_compress, file_path) {
+            
+            let compression_flag = match compression 
+            {
+                Compression::Zlib => { 1 } // base compression flag
+                Compression::ZStd => { 0b1000 | 1 }
+                Compression::Lz4 => { 0b10000 | 1 }
+            };
+            
             file_header.method = if format == &Format::V2 {
-                5
+                compression_flag | 4
             } else {
-                1
+                compression_flag
             }; // zlib
-            let compressed_data = zlib_compress(data, level)?;
+            
+            let compressed_data = match compression 
+            {
+                Compression::Zlib => { zlib_compress(data, level)? },
+                Compression::ZStd => { zstd::stream::encode_all(data.as_slice(), 22)? },
+                Compression::Lz4 => {
+                    let mut file : Vec<u8> = Vec::new();
+                    let mut encode = EncoderBuilder::new()
+                        .level(12)
+                        .favor_dec_speed(true)
+                        .build(&mut file)?;
+                    
+                    io::copy(&mut data.as_slice(), &mut encode)?;
+                    let (_output, _result) = encode.finish();
+                    file
+                },
+            };
+            
             file_header.packed_size = io::copy(&mut compressed_data.as_slice(), &mut file_writer)? as u32;
             for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
                 file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);

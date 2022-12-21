@@ -3,7 +3,7 @@ use std::io;
 
 use indicatif::ProgressBar;
 
-use crate::Format;
+use crate::{Compression, Format};
 use crate::util::FileHeaderTrait;
 use crate::v1::V1BfsFile;
 use crate::v2::V2BfsFile;
@@ -30,16 +30,16 @@ impl BfsFileTrait for BfsFile {
         })
     }
 
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool) -> io::Result<()> {
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool, compression: Compression) -> io::Result<()> {
         match format {
             Format::V1 | Format::V1a => {
-                V1BfsFile::archive(format, bfs_path, input_folder_path, input_files, verbose, filters, copy_filters, level, bar, file_version, deduplicate)
+                V1BfsFile::archive(format, bfs_path, input_folder_path, input_files, verbose, filters, copy_filters, level, bar, file_version, deduplicate, compression)
             }
             Format::V2 | Format::V2a => {
-                V2BfsFile::archive(format, bfs_path, input_folder_path, input_files, verbose, filters, copy_filters, level, bar, file_version, deduplicate)
+                V2BfsFile::archive(format, bfs_path, input_folder_path, input_files, verbose, filters, copy_filters, level, bar, file_version, deduplicate, compression)
             }
             Format::V3 => {
-                V3BfsFile::archive(format, bfs_path, input_folder_path, input_files, verbose, filters, copy_filters, level, bar, file_version, deduplicate)
+                V3BfsFile::archive(format, bfs_path, input_folder_path, input_files, verbose, filters, copy_filters, level, bar, file_version, deduplicate, compression)
             }
         }
     }
@@ -87,7 +87,7 @@ impl BfsFileTrait for BfsFile {
 
 pub trait BfsFileTrait: Sized {
     fn read_bfs_from_file(path: String, format: Format) -> io::Result<Self>;
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool) -> io::Result<()>;
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool, compression: Compression) -> io::Result<()>;
     fn get_file_count(&self) -> u32;
     fn get_data_offset(&self) -> u32;
     fn get_file_headers(&self) -> Vec<Box<dyn FileHeaderTrait>>;

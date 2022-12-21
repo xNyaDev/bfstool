@@ -93,6 +93,9 @@ enum Commands {
         bfs_name: String,
         /// Folder to archive
         input_folder: String,
+        /// Compression scheme. Non-zlib supported only for FO2 w/ Reloaded ModLoader add-in.
+        #[clap(long, value_enum, default_value_t = Compression::Zlib)]
+        compression: Compression,
         /// Compression level [0-9]
         #[clap(value_parser = clap::value_parser ! (u32).range(0..=9), short, long)]
         level: Option<u32>,
@@ -252,6 +255,13 @@ pub enum Format {
     V2,
     V2a,
     V3,
+}
+
+#[derive(ValueEnum, Clone, Eq, PartialEq, Copy)]
+pub enum Compression {
+    Zlib,
+    ZStd,
+    Lz4
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]
@@ -615,7 +625,8 @@ fn main() {
             file_version: version,
             verbose,
             no_progress,
-            deduplicate
+            deduplicate,
+            compression,
         } => {
             let input_files = list_files_recursively(input_folder.clone());
 
@@ -641,7 +652,8 @@ fn main() {
                     level,
                     &bar,
                     version,
-                    deduplicate
+                    deduplicate,
+                    compression
                 ).expect("Failed to archive BFS file");
 
                 bar.finish_and_clear();

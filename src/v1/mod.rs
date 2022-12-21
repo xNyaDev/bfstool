@@ -11,7 +11,7 @@ use xxhash_rust::xxh64::xxh64;
 
 pub use structs::*;
 
-use crate::{apply_copy_filters, Format};
+use crate::{apply_copy_filters, Compression, Format};
 use crate::archived_data::zlib_compress;
 use crate::bfs::BfsFileTrait;
 use crate::filter::apply_filters;
@@ -157,7 +157,7 @@ impl BfsFileTrait for V1BfsFile {
         Ok(result)
     }
 
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool) -> io::Result<()> {
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool, _compression: Compression) -> io::Result<()> {
         let mut bfs_file = V1BfsFile::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
