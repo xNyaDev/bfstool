@@ -96,7 +96,7 @@ enum Commands {
         /// Compression scheme. Non-zlib supported only for FO2 w/ Reloaded ModLoader add-in.
         #[clap(long, value_enum, default_value_t = Compression::Zlib)]
         compression: Compression,
-        /// Compression level [0-9]
+        /// Compression level [0-9] for Zlib. [0-12] for LZ4, [0-22] for Zlib.
         #[clap(value_parser = clap::value_parser ! (u32).range(0..=9), short, long)]
         level: Option<u32>,
         /// Filter for compression - You can either supply the filter name or a filter file
