@@ -11,7 +11,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use tabled::{Alignment, Modify, Style, Table, Tabled};
 use tabled::object::{Columns, Segment};
 
-use crate::archived_data::{raw_extract, zlib_extract};
+use crate::archived_data::{lz4_extract, raw_extract, zlib_extract, zstd_extract};
 use crate::bfs::{BfsFile, BfsFileTrait};
 use crate::crypt::{create_key, decrypt_headers_block, read_and_decrypt_block};
 use crate::Endianness::{Be, Le};
@@ -97,7 +97,7 @@ enum Commands {
         #[clap(long, value_enum, default_value_t = Compression::Zlib)]
         compression: Compression,
         /// Compression level [0-9] for Zlib. [0-12] for LZ4, [0-22] for Zlib.
-        #[clap(value_parser = clap::value_parser ! (u32).range(0..=9), short, long)]
+        #[clap(value_parser = clap::value_parser ! (u32).range(0..=22), short, long)]
         level: Option<u32>,
         /// Filter for compression - You can either supply the filter name or a filter file
         #[clap(long, value_enum, required_unless_present_any = ["filter_file", "version", "help"])]
@@ -582,8 +582,19 @@ fn main() {
 
                     let mut output_file = File::create(full_file_path).expect("Failed to create extracted");
                     let mut status;
-                    if file_header.get_method() == 5 || file_header.get_method() == 1 { // zlib
-                        let size = zlib_extract(&mut reader, &mut output_file, file_header.get_data_offset(), file_header.get_packed_size()).expect("Failed to write to extracted file");
+                    if file_header.get_method() & 0b1 == 0b1 { // zlib [or custom compression]
+                        let size : usize;
+                        
+                        if file_header.get_method() & 0b1000 == 0b1000 {    
+                            size = zstd_extract(&mut reader, &mut output_file, file_header.get_data_offset(), file_header.get_packed_size()).expect("[zstd] Failed to write to extracted file");
+                        }
+                        else if file_header.get_method() & 0b10000 == 0b10000 {
+                            size = lz4_extract(&mut reader, &mut output_file, file_header.get_data_offset(), file_header.get_packed_size()).expect("[lz4] Failed to write to extracted file");
+                        }
+                        else {
+                            size = zlib_extract(&mut reader, &mut output_file, file_header.get_data_offset(), file_header.get_packed_size()).expect("[zlib] Failed to write to extracted file");
+                        }
+                        
                         status = format!("{} -> {} bytes", file_header.get_packed_size(), size);
                         if size != file_header.get_unpacked_size() as usize {
                             status += &format!(", {} expected. File may be corrupt.", file_header.get_unpacked_size());
