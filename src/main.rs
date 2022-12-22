@@ -260,7 +260,7 @@ pub enum Format {
 #[derive(ValueEnum, Clone, Eq, PartialEq, Copy)]
 pub enum Compression {
     Zlib,
-    ZStd,
+    Zstd,
     Lz4
 }
 

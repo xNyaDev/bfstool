@@ -478,7 +478,7 @@ impl V2BfsFile {
             let compression_flag = match compression 
             {
                 Compression::Zlib => { 1 } // base compression flag
-                Compression::ZStd => { 0b1000 | 1 }
+                Compression::Zstd => { 0b1000 | 1 }
                 Compression::Lz4 => { 0b10000 | 1 }
             };
             
@@ -491,7 +491,7 @@ impl V2BfsFile {
             let compressed_data = match compression 
             {
                 Compression::Zlib => { zlib_compress(data, level)? },
-                Compression::ZStd => { zstd::stream::encode_all(data.as_slice(), level.unwrap() as i32)? },
+                Compression::Zstd => { zstd::stream::encode_all(data.as_slice(), level.unwrap() as i32)? },
                 Compression::Lz4 => {
                     let mut file : Vec<u8> = Vec::new();
                     let mut encode = EncoderBuilder::new()
