@@ -343,76 +343,78 @@ impl BfsFileTrait for V2BfsFile {
         const JAMCRC: Crc<u32> = Crc::<u32>::new(&CRC_32_JAMCRC);
         let mut dedupe_hash_to_header = HashMap::<u64, FileHeader>::new();
 
-        for hash in 0..0x3E5 {
-            if let Some(files) = lua_hash_files_map.get(&hash) {
-                for file_path in files {
-                    let original_file_path = filenames.get(file_path).unwrap();
-                    let mut file = File::open(original_file_path)?;
-                    let mut data = Vec::new();
-                    file.read_to_end(&mut data)?;
-                    let (file_copies, file_copies_a) = copy_filters.get(file_path).unwrap().clone();
-                    let mut file_header = FileHeader {
-                        method: 0,
-                        file_copies,
-                        file_copies_a,
-                        data_offset: file_writer.stream_position()? as u32,
-                        unpacked_size: data.len() as u32,
-                        packed_size: 0,
-                        crc32: if format == Format::V2 {
-                            JAMCRC.checksum(&data)
-                        } else {
-                            0
-                        },
-                        folder_id: 0,
-                        file_id: 0,
-                        file_copies_offsets: vec![],
-                    };
-                    
-                    if let Some((folder, file)) = file_path.rsplit_once("/") {
-                        file_header.folder_id = name_ids.get(folder).unwrap().clone();
-                        file_header.file_id = name_ids.get(file).unwrap().clone();
-                    }
-                    
-                    let mut status= String::new();
+        let files = crate::util::get_all_files(&mut lua_hash_files_map);
+        bfs_file.file_headers.resize(files.0.len(), FileHeader::default());
+        
+        for i in 0..files.0.len() {
+            let file_index = files.1[i];
+            let file_path = files.0[file_index];
+            
+            let original_file_path = filenames.get(file_path).unwrap();
+            let mut file = File::open(original_file_path)?;
+            let mut data = Vec::new();
+            file.read_to_end(&mut data)?;
+            let (file_copies, file_copies_a) = copy_filters.get(file_path).unwrap().clone();
+            let mut file_header = FileHeader {
+                method: 0,
+                file_copies,
+                file_copies_a,
+                data_offset: file_writer.stream_position()? as u32,
+                unpacked_size: data.len() as u32,
+                packed_size: 0,
+                crc32: if format == Format::V2 {
+                    JAMCRC.checksum(&data)
+                } else {
+                    0
+                },
+                folder_id: 0,
+                file_id: 0,
+                file_copies_offsets: vec![],
+            };
 
-                    // Check duplicate
-                    if deduplicate {
-                        // Note: We hash separately using a hash with longer value as I (Sewer) don't like
-                        // probability of collision with 32-bit hash.
-                        let dedupe_hash: u64 = xxh64(&data, 0);
-                        
-                        // Note: We have to account for the case where one file is compressed but another file isn't, so make
-                        // sure the compress state matches existing file.
-                        let should_compress_file = Self::should_compress_file(level, &files_to_compress, file_path);
-                        
-                        if let Some(cached_header) = dedupe_hash_to_header.get(&dedupe_hash) {
-                            if should_compress_file == cached_header.is_compressed() && cached_header.unpacked_size == file_header.unpacked_size {
-                                file_header.method = cached_header.method;
-                                file_header.packed_size = cached_header.packed_size;
-                                file_header.data_offset = cached_header.data_offset;
-                                status = format!("{} bytes, deduplicated", file_header.packed_size);
-                            }
-                            else {
-                                Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
-                            }
-                        }
-                        else {
-                            Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
-                            dedupe_hash_to_header.insert(dedupe_hash, file_header.clone());
-                        }
+            if let Some((folder, file)) = file_path.rsplit_once("/") {
+                file_header.folder_id = name_ids.get(folder).unwrap().clone();
+                file_header.file_id = name_ids.get(file).unwrap().clone();
+            }
+
+            let mut status= String::new();
+
+            // Check duplicate
+            if deduplicate {
+                // Note: We hash separately using a hash with longer value as I (Sewer) don't like
+                // probability of collision with 32-bit hash.
+                let dedupe_hash: u64 = xxh64(&data, 0);
+
+                // Note: We have to account for the case where one file is compressed but another file isn't, so make
+                // sure the compress state matches existing file.
+                let should_compress_file = Self::should_compress_file(level, &files_to_compress, file_path);
+
+                if let Some(cached_header) = dedupe_hash_to_header.get(&dedupe_hash) {
+                    if should_compress_file == cached_header.is_compressed() && cached_header.unpacked_size == file_header.unpacked_size {
+                        file_header.method = cached_header.method;
+                        file_header.packed_size = cached_header.packed_size;
+                        file_header.data_offset = cached_header.data_offset;
+                        status = format!("{} bytes, deduplicated", file_header.packed_size);
                     }
                     else {
                         Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
                     }
-                    
-                    if verbose {
-                        bar.println(format!("{file_path:?} {status}"));
-                    }
-                    bar.inc(1);
-
-                    bfs_file.file_headers.push(file_header);
+                }
+                else {
+                    Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
+                    dedupe_hash_to_header.insert(dedupe_hash, file_header.clone());
                 }
             }
+            else {
+                Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
+            }
+
+            if verbose {
+                bar.println(format!("{file_path:?} {status}"));
+            }
+            bar.inc(1);
+
+            bfs_file.file_headers[file_index] = file_header;
         }
 
         if verbose {
