@@ -360,7 +360,7 @@ impl BfsFileTrait for V2BfsFile {
                 method: 0,
                 file_copies,
                 file_copies_a,
-                data_offset: file_writer.stream_position()? as u32,
+                data_offset: 0,
                 unpacked_size: data.len() as u32,
                 packed_size: 0,
                 crc32: if format == Format::V2 {
@@ -506,8 +506,10 @@ impl V2BfsFile {
                     file
                 },
             };
-            
+
+            file_header.data_offset = crate::util::align_file_in_stream(&mut file_writer, compressed_data.len())? as u32;
             file_header.packed_size = io::copy(&mut compressed_data.as_slice(), &mut file_writer)? as u32;
+            
             for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
                 file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
                 io::copy(&mut compressed_data.as_slice(), &mut file_writer)?;
@@ -520,7 +522,10 @@ impl V2BfsFile {
             } else {
                 0
             }; // store
+
+            file_header.data_offset = crate::util::align_file_in_stream(&mut file_writer, file_header.unpacked_size as usize)? as u32;
             file_header.packed_size = file_header.unpacked_size;
+            
             io::copy(&mut data.as_slice(), &mut file_writer)?;
             for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
                 file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
