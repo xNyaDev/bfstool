@@ -99,4 +99,6 @@ impl FileHeaderTrait for FileHeader {
     fn get_file_copies_num(&self) -> (u8, u16) {
         (self.file_copies, self.file_copies_a)
     }
+
+    fn is_compressed(&self) -> bool { self.unpacked_size != self.packed_size }
 }

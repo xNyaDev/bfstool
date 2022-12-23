@@ -7,6 +7,7 @@ use std::mem::size_of;
 
 use crc::{Crc, CRC_32_JAMCRC};
 use indicatif::ProgressBar;
+use xxhash_rust::xxh64::xxh64;
 
 pub use structs::*;
 
@@ -156,7 +157,7 @@ impl BfsFileTrait for V1BfsFile {
         Ok(result)
     }
 
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4]) -> io::Result<()> {
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool) -> io::Result<()> {
         let mut bfs_file = V1BfsFile::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
@@ -245,6 +246,7 @@ impl BfsFileTrait for V1BfsFile {
         // Pack the files
 
         const JAMCRC: Crc<u32> = Crc::<u32>::new(&CRC_32_JAMCRC);
+        let mut dedupe_hash_to_header = HashMap::<u64, FileHeader>::new();
 
         let mut sorted_file_names = file_names.keys().cloned().collect::<Vec<String>>();
         sorted_file_names.sort_unstable();
@@ -282,45 +284,37 @@ impl BfsFileTrait for V1BfsFile {
                 file_copies_offsets: vec![],
             };
 
-            let status;
-            if files_to_compress.contains(file_name) && level != Some(0) {
-                file_header.method = if &format == &Format::V1 {
-                    5
-                } else {
-                    1
-                }; // zlib
-                let compressed_data = zlib_compress(data, level)?;
-                file_header.crc32 = if &format == &Format::V1 {
-                    JAMCRC.checksum(&compressed_data)
-                } else {
-                    0
-                };
-                file_header.packed_size = io::copy(&mut compressed_data.as_slice(), &mut file_writer)? as u32;
-                for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
-                    file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
-                    io::copy(&mut compressed_data.as_slice(), &mut file_writer)?;
-                }
-                status = format!("{} -> {} bytes", file_header.unpacked_size, file_header.packed_size);
-            } else {
-                file_header.method = if &format == &Format::V1 {
-                    4
-                } else {
-                    0
-                }; // store
-                file_header.crc32 = if &format == &Format::V1 {
-                    JAMCRC.checksum(&data)
-                } else {
-                    0
-                };
-                file_header.packed_size = file_header.unpacked_size;
-                io::copy(&mut data.as_slice(), &mut file_writer)?;
-                for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
-                    file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
-                    io::copy(&mut data.as_slice(), &mut file_writer)?;
-                }
-                status = format!("{} bytes", file_header.unpacked_size);
-            }
+            let mut status = String::new();
+            if deduplicate {
+                // Note: We hash separately using a hash with longer value as I (Sewer) don't like
+                // probability of collision with 32-bit hash.
+                let dedupe_hash: u64 = xxh64(&data, 0);
 
+                // Note: We have to account for the case where one file is compressed but another file isn't, so make
+                // sure the compress state matches existing file.
+                let should_compress_file = Self::should_compress_file(level, &files_to_compress, file_path);
+
+                if let Some(cached_header) = dedupe_hash_to_header.get(&dedupe_hash) {
+                    if should_compress_file == cached_header.is_compressed() && cached_header.unpacked_size == file_header.unpacked_size {
+                        file_header.crc32 = cached_header.crc32;
+                        file_header.method = cached_header.method;
+                        file_header.packed_size = cached_header.packed_size;
+                        file_header.data_offset = cached_header.data_offset;
+                        status = format!("{} bytes, deduplicated", file_header.packed_size);
+                    }
+                    else {
+                        Self::write_file_to_output(&format, level, &mut file_writer, &files_to_compress, file_name, data, &mut file_header, &mut status, JAMCRC)?;
+                    }
+                }
+                else {
+                    Self::write_file_to_output(&format, level, &mut file_writer, &files_to_compress, file_name, data, &mut file_header, &mut status, JAMCRC)?;
+                    dedupe_hash_to_header.insert(dedupe_hash, file_header.clone());
+                }
+            }
+            else {
+                Self::write_file_to_output(&format, level, &mut file_writer, &files_to_compress, file_name, data, &mut file_header, &mut status, JAMCRC)?;
+            }
+            
             bfs_file.file_headers.push(file_header);
             let c_name = CString::new(file_name.clone()).unwrap();
             bfs_file.raw_file_names.push(c_name.into_bytes());
@@ -385,5 +379,56 @@ impl BfsFileTrait for V1BfsFile {
 
     fn get_file_version(&self) -> u32 {
         self.bfs_header.file_version
+    }
+}
+
+impl V1BfsFile {
+    fn write_file_to_output(format: &Format, level: Option<u32>, mut file_writer: &mut BufWriter<File>,
+                            files_to_compress: &Vec<String>, file_name: &String, data: Vec<u8>,
+                            file_header: &mut FileHeader, status: &mut String,
+                            crc: Crc<u32>) -> io::Result<()> {
+        if Self::should_compress_file(level, files_to_compress, file_name) {
+            file_header.method = if format == &Format::V1 {
+                5
+            } else {
+                1
+            }; // zlib
+            let compressed_data = zlib_compress(data, level)?;
+            file_header.crc32 = if format == &Format::V1 {
+                crc.checksum(&compressed_data)
+            } else {
+                0
+            };
+            file_header.packed_size = io::copy(&mut compressed_data.as_slice(), &mut file_writer)? as u32;
+            for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
+                file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
+                io::copy(&mut compressed_data.as_slice(), &mut file_writer)?;
+            }
+            *status = format!("{} -> {} bytes", file_header.unpacked_size, file_header.packed_size);
+        } else {
+            file_header.method = if format == &Format::V1 {
+                4
+            } else {
+                0
+            }; // store
+            file_header.crc32 = if format == &Format::V1 {
+                crc.checksum(&data)
+            } else {
+                0
+            };
+            file_header.packed_size = file_header.unpacked_size;
+            io::copy(&mut data.as_slice(), &mut file_writer)?;
+            for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
+                file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
+                io::copy(&mut data.as_slice(), &mut file_writer)?;
+            }
+            *status = format!("{} bytes", file_header.unpacked_size);
+        }
+
+        Ok(())
+    }
+    
+    fn should_compress_file(level: Option<u32>, files_to_compress: &Vec<String>, file_name: &String) -> bool {
+        files_to_compress.contains(file_name) && level != Some(0)
     }
 }

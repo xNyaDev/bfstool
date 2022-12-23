@@ -7,6 +7,7 @@ use std::mem::size_of;
 
 use crc::{Crc, CRC_32_JAMCRC};
 use indicatif::ProgressBar;
+use xxhash_rust::xxh64::xxh64;
 
 pub use structs::*;
 
@@ -210,7 +211,7 @@ impl BfsFileTrait for V2BfsFile {
         Ok(result)
     }
 
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4]) -> io::Result<()> {
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool) -> io::Result<()> {
         let mut bfs_file = Self::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
@@ -334,78 +335,86 @@ impl BfsFileTrait for V2BfsFile {
         // Empty values where the metadata will be later
         file_writer.write_all(&vec![0u8; bfs_file.bfs_header.data_offset as usize])?;
 
-        let files_to_compress = apply_filters(
+        let mut files_to_compress = apply_filters(
             filenames.keys().cloned().collect(),
             filters,
         );
 
         const JAMCRC: Crc<u32> = Crc::<u32>::new(&CRC_32_JAMCRC);
+        let mut dedupe_hash_to_header = HashMap::<u64, FileHeader>::new();
 
-        for hash in 0..0x3E5 {
-            if let Some(files) = lua_hash_files_map.get(&hash) {
-                for file_path in files {
-                    let original_file_path = filenames.get(file_path).unwrap();
-                    let mut file = File::open(original_file_path)?;
-                    let mut data = Vec::new();
-                    file.read_to_end(&mut data)?;
-                    let (file_copies, file_copies_a) = copy_filters.get(file_path).unwrap().clone();
-                    let mut file_header = FileHeader {
-                        method: 0,
-                        file_copies,
-                        file_copies_a,
-                        data_offset: file_writer.stream_position()? as u32,
-                        unpacked_size: data.len() as u32,
-                        packed_size: 0,
-                        crc32: if format == Format::V2 {
-                            JAMCRC.checksum(&data)
-                        } else {
-                            0
-                        },
-                        folder_id: 0,
-                        file_id: 0,
-                        file_copies_offsets: vec![],
-                    };
-                    if let Some((folder, file)) = file_path.rsplit_once("/") {
-                        file_header.folder_id = name_ids.get(folder).unwrap().clone();
-                        file_header.file_id = name_ids.get(file).unwrap().clone();
-                    }
-                    let status;
-                    if files_to_compress.contains(file_path) && level != Some(0) {
-                        file_header.method = if &format == &Format::V2 {
-                            5
-                        } else {
-                            1
-                        }; // zlib
-                        let compressed_data = zlib_compress(data, level)?;
-                        file_header.packed_size = io::copy(&mut compressed_data.as_slice(), &mut file_writer)? as u32;
-                        for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
-                            file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
-                            io::copy(&mut compressed_data.as_slice(), &mut file_writer)?;
-                        }
-                        status = format!("{} -> {} bytes", file_header.unpacked_size, file_header.packed_size);
-                    } else {
-                        file_header.method = if &format == &Format::V2 {
-                            4
-                        } else {
-                            0
-                        }; // store
-                        file_header.packed_size = file_header.unpacked_size;
-                        io::copy(&mut data.as_slice(), &mut file_writer)?;
-                        for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
-                            file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
-                            io::copy(&mut data.as_slice(), &mut file_writer)?;
-                        }
-                        status = format!("{} bytes", file_header.unpacked_size);
-                    }
+        let files = crate::util::get_all_files(&mut lua_hash_files_map);
+        bfs_file.file_headers.resize(files.0.len(), FileHeader::default());
+        
+        for i in 0..files.0.len() {
+            let file_index = files.1[i];
+            let file_path = files.0[file_index];
+            
+            let original_file_path = filenames.get(file_path).unwrap();
+            let mut file = File::open(original_file_path)?;
+            let mut data = Vec::new();
+            file.read_to_end(&mut data)?;
+            let (file_copies, file_copies_a) = copy_filters.get(file_path).unwrap().clone();
+            let mut file_header = FileHeader {
+                method: 0,
+                file_copies,
+                file_copies_a,
+                data_offset: file_writer.stream_position()? as u32,
+                unpacked_size: data.len() as u32,
+                packed_size: 0,
+                crc32: if format == Format::V2 {
+                    JAMCRC.checksum(&data)
+                } else {
+                    0
+                },
+                folder_id: 0,
+                file_id: 0,
+                file_copies_offsets: vec![],
+            };
 
-                    if verbose {
-                        bar.println(format!("{file_path:?} {status}"));
-                    }
-                    bar.inc(1);
+            if let Some((folder, file)) = file_path.rsplit_once("/") {
+                file_header.folder_id = name_ids.get(folder).unwrap().clone();
+                file_header.file_id = name_ids.get(file).unwrap().clone();
+            }
 
-                    bfs_file.file_headers.push(file_header);
+            let mut status= String::new();
+
+            // Check duplicate
+            if deduplicate {
+                // Note: We hash separately using a hash with longer value as I (Sewer) don't like
+                // probability of collision with 32-bit hash.
+                let dedupe_hash: u64 = xxh64(&data, 0);
+
+                // Note: We have to account for the case where one file is compressed but another file isn't, so make
+                // sure the compress state matches existing file.
+                let should_compress_file = Self::should_compress_file(level, &files_to_compress, file_path);
+
+                if let Some(cached_header) = dedupe_hash_to_header.get(&dedupe_hash) {
+                    if should_compress_file == cached_header.is_compressed() && cached_header.unpacked_size == file_header.unpacked_size {
+                        file_header.method = cached_header.method;
+                        file_header.packed_size = cached_header.packed_size;
+                        file_header.data_offset = cached_header.data_offset;
+                        status = format!("{} bytes, deduplicated", file_header.packed_size);
+                    }
+                    else {
+                        Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
+                    }
+                }
+                else {
+                    Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
+                    dedupe_hash_to_header.insert(dedupe_hash, file_header.clone());
                 }
             }
+            else {
+                Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status)?;
+            }
+
+            if verbose {
+                bar.println(format!("{file_path:?} {status}"));
+            }
+            bar.inc(1);
+
+            bfs_file.file_headers[file_index] = file_header;
         }
 
         if verbose {
@@ -456,5 +465,48 @@ impl BfsFileTrait for V2BfsFile {
 
     fn get_file_version(&self) -> u32 {
         self.bfs_header.file_version
+    }
+}
+
+impl V2BfsFile {
+    fn write_file_to_output(format: &Format, level: Option<u32>, mut file_writer: &mut BufWriter<File>, 
+                            files_to_compress: &Vec<String>, file_path: &String, data: Vec<u8>, 
+                            file_header: &mut FileHeader, status: &mut String) -> io::Result<()> {
+        
+        if Self::should_compress_file(level, files_to_compress, file_path) {
+            file_header.method = if format == &Format::V2 {
+                5
+            } else {
+                1
+            }; // zlib
+            let compressed_data = zlib_compress(data, level)?;
+            file_header.packed_size = io::copy(&mut compressed_data.as_slice(), &mut file_writer)? as u32;
+            for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
+                file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
+                io::copy(&mut compressed_data.as_slice(), &mut file_writer)?;
+            }
+            
+            *status = format!("{} -> {} bytes", file_header.unpacked_size, file_header.packed_size);
+        } else {
+            file_header.method = if format == &Format::V2 {
+                4
+            } else {
+                0
+            }; // store
+            file_header.packed_size = file_header.unpacked_size;
+            io::copy(&mut data.as_slice(), &mut file_writer)?;
+            for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
+                file_header.file_copies_offsets.push(file_writer.stream_position()? as u32);
+                io::copy(&mut data.as_slice(), &mut file_writer)?;
+            }
+            
+            *status = format!("{} bytes", file_header.unpacked_size);
+        }
+
+        Ok(())
+    }
+
+    fn should_compress_file(level: Option<u32>, files_to_compress: &Vec<String>, file_path: &String) -> bool {
+        files_to_compress.contains(file_path) && level != Some(0)
     }
 }
