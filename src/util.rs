@@ -205,6 +205,9 @@ pub fn align_file_in_stream_with_alignment(file_writer: &mut BufWriter<File>, fi
     
     // Get bytes remaining in slice
     let mut bytes_left_in_current_slice = align_number_to_next_multiple(pos as usize, alignment) - pos;
+    file_writer.seek(SeekFrom::Current(bytes_left_in_current_slice as i64))?;
+    return Ok(file_writer.stream_position()? as usize);
+    
     if bytes_left_in_current_slice == 0 {
         bytes_left_in_current_slice += alignment; // In case already aligned, for our fit check
     }
