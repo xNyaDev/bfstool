@@ -20,6 +20,7 @@ pub trait FileHeaderTrait {
     fn get_packed_size(&self) -> u32;
     fn get_file_copies_offsets(&self) -> Vec<u32>;
     fn get_file_copies_num(&self) -> (u8, u16);
+    fn is_compressed(&self) -> bool;
 }
 
 /// Modified Lua 4.0 string hash function
@@ -160,4 +161,27 @@ pub fn write_data_to_file_endian(file_writer: &mut BufWriter<File>, data: Vec<u3
         }
     }
     Ok(())
+}
+
+/// Gets all files from a hash map and orders them by name to hopefully group files loaded together
+pub fn get_all_files(lua_hash_files_map: &mut HashMap<u32, Vec<String>>) -> (Vec<&String>, Vec<usize>) {
+    let mut all_files = Vec::new();
+
+    for hash in 0..0x3E5 {
+        if let Some(files) = lua_hash_files_map.get(&hash) {
+            for file_path in files {
+                all_files.push(file_path);
+            }
+        }
+    }
+
+    let sorted_indices = get_sorted_indices(all_files.as_slice());
+    (all_files, sorted_indices)
+}
+
+/// Returns indices of vector in sorted order.
+pub fn get_sorted_indices<T: Ord>(data: &[T]) -> Vec<usize> {
+    let mut indices = (0..data.len()).collect::<Vec<_>>();
+    indices.sort_by_key(|&i| &data[i]);
+    indices
 }
