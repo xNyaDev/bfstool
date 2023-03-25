@@ -6,6 +6,20 @@ use flate2::bufread::ZlibDecoder;
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
 
+pub fn zstd_extract(reader: &mut BufReader<File>, writer: &mut File, reader_offset: u32, compressed_size: u32) -> io::Result<usize> {
+    reader.seek(SeekFrom::Start(reader_offset as u64))?;
+    let compressed_data = reader.take(compressed_size as u64);
+    let mut decoder = zstd::Decoder::new(compressed_data)?;
+    Ok(io::copy(&mut decoder, writer)? as usize)
+}
+
+pub fn lz4_extract(reader: &mut BufReader<File>, writer: &mut File, reader_offset: u32, compressed_size: u32) -> io::Result<usize> {
+    reader.seek(SeekFrom::Start(reader_offset as u64))?;
+    let compressed_data = reader.take(compressed_size as u64);
+    let mut decoder = lz4::Decoder::new(compressed_data)?;
+    Ok(io::copy(&mut decoder, writer)? as usize)
+}
+
 pub fn zlib_extract(reader: &mut BufReader<File>, writer: &mut File, reader_offset: u32, compressed_size: u32) -> io::Result<usize> {
     reader.seek(SeekFrom::Start(reader_offset as u64))?;
     let compressed_data = reader.take(compressed_size as u64);

@@ -2,7 +2,7 @@ use std::{fs, io};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::ffi::CString;
 use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::io::{BufWriter, Seek, SeekFrom, Write};
 use std::path::Path;
 
 use crate::Endianness;
@@ -184,4 +184,39 @@ pub fn get_sorted_indices<T: Ord>(data: &[T]) -> Vec<usize> {
     let mut indices = (0..data.len()).collect::<Vec<_>>();
     indices.sort_by_key(|&i| &data[i]);
     indices
+}
+
+/// Adds dummy padding to stream to align a file to a specified multiple
+/// such that the end of the file will be aligned with specified alignment.
+/// 
+/// Files that fit within current alignment will not be aligned.
+pub fn align_file_in_stream(file_writer: &mut BufWriter<File>, file_size: usize, alignment: usize, align_front: bool) -> io::Result<usize> {
+    
+    // Get space available in current alignment multiple.
+    let pos = file_writer.stream_position()? as usize;
+    
+    // Get bytes remaining in slice
+    let mut bytes_left_in_current_slice = align_number_to_next_multiple(pos as usize, alignment) - pos;
+    file_writer.seek(SeekFrom::Current(bytes_left_in_current_slice as i64))?;
+    
+    if align_front { 
+        return Ok(file_writer.stream_position()? as usize); 
+    }
+    
+    if bytes_left_in_current_slice == 0 {
+        bytes_left_in_current_slice += alignment; // In case already aligned, for our fit check
+    }
+        
+    if bytes_left_in_current_slice >= file_size {
+        return Ok(file_writer.stream_position()? as usize);
+    }
+    
+    let next_pos_rounded = align_number_to_next_multiple(pos + file_size, alignment);
+    let rounding_needed  = next_pos_rounded - (pos + file_size);
+    file_writer.seek(SeekFrom::Current(rounding_needed as i64))?;
+    return Ok(file_writer.stream_position()? as usize);
+}
+
+pub fn align_number_to_next_multiple(number: usize, alignment: usize) -> usize {
+    return ((number + alignment - 1) / alignment) * alignment;
 }
