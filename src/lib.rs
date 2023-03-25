@@ -35,5 +35,7 @@
 pub use archive_reader::read_archive;
 pub use formats::Format;
 
-mod archive_reader;
-mod formats;
+/// Provides generics to read a format
+pub mod archive_reader;
+/// Provides all the formats available in the tool as well as their implementations
+pub mod formats;
