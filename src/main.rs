@@ -126,6 +126,13 @@ enum Commands {
         /// Stores all files with matching hash only once
         #[clap(long)]
         deduplicate: bool,
+        /// (v2/a only) If true aligns the data to the front for compatibility with non-PC platforms;
+        /// else allows some more customization for performance.
+        #[clap(default_value_t = true, long)]
+        align_front: bool,
+        /// (v2/a only) Aligns the data by a specified amount.
+        #[clap(long = "align", default_value_t = 4096)]
+        align_bytes: u32,
     },
     /// Identify an unknown BFS file using file hashes from bfs_file_dat.md
     #[clap(visible_alias = "i", visible_alias = "id", visible_alias = "info")]
@@ -638,6 +645,8 @@ fn main() {
             no_progress,
             deduplicate,
             compression,
+            align_front,
+            align_bytes
         } => {
             let input_files = list_files_recursively(input_folder.clone());
 
@@ -664,7 +673,9 @@ fn main() {
                     &bar,
                     version,
                     deduplicate,
-                    compression
+                    compression,
+                    align_front,
+                    align_bytes
                 ).expect("Failed to archive BFS file");
 
                 bar.finish_and_clear();

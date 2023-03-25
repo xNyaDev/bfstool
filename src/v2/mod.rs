@@ -212,7 +212,7 @@ impl BfsFileTrait for V2BfsFile {
         Ok(result)
     }
 
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool, compression: Compression) -> io::Result<()> {
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool, compression: Compression, align_front: bool, align_bytes: u32) -> io::Result<()> {
         let mut bfs_file = Self::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"
@@ -398,16 +398,16 @@ impl BfsFileTrait for V2BfsFile {
                         status = format!("{} bytes, deduplicated", file_header.packed_size);
                     }
                     else {
-                        Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression)?;
+                        Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression, align_front, align_bytes)?;
                     }
                 }
                 else {
-                    Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression)?;
+                    Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression, align_front, align_bytes)?;
                     dedupe_hash_to_header.insert(dedupe_hash, file_header.clone());
                 }
             }
             else {
-                Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression)?;
+                Self::write_file_to_output(&format, level, &mut file_writer, &mut files_to_compress, file_path, data, &mut file_header, &mut status, compression, align_front, align_bytes)?;
             }
 
             if verbose {
@@ -473,7 +473,7 @@ impl V2BfsFile {
     fn write_file_to_output(format: &Format, level: Option<u32>, mut file_writer: &mut BufWriter<File>,
                             files_to_compress: &Vec<String>, file_path: &String, data: Vec<u8>,
                             file_header: &mut FileHeader, status: &mut String,
-                            compression: Compression) -> io::Result<()> {
+                            compression: Compression, align_front: bool, align_bytes: u32) -> io::Result<()> {
         
         if Self::should_compress_file(level, files_to_compress, file_path) {
             
@@ -507,7 +507,7 @@ impl V2BfsFile {
                 },
             };
 
-            file_header.data_offset = crate::util::align_file_in_stream(&mut file_writer, compressed_data.len())? as u32;
+            file_header.data_offset = crate::util::align_file_in_stream(&mut file_writer, compressed_data.len(), align_bytes as usize, align_front)? as u32;
             file_header.packed_size = io::copy(&mut compressed_data.as_slice(), &mut file_writer)? as u32;
             
             for _ in 0..(file_header.file_copies as u16 + file_header.file_copies_a) {
@@ -523,7 +523,7 @@ impl V2BfsFile {
                 0
             }; // store
 
-            file_header.data_offset = crate::util::align_file_in_stream(&mut file_writer, file_header.unpacked_size as usize)? as u32;
+            file_header.data_offset = crate::util::align_file_in_stream(&mut file_writer, file_header.unpacked_size as usize, align_bytes as usize, align_front)? as u32;
             file_header.packed_size = file_header.unpacked_size;
             
             io::copy(&mut data.as_slice(), &mut file_writer)?;

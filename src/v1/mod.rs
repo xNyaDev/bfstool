@@ -157,7 +157,7 @@ impl BfsFileTrait for V1BfsFile {
         Ok(result)
     }
 
-    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool, _compression: Compression) -> io::Result<()> {
+    fn archive(format: Format, bfs_path: String, input_folder_path: String, input_files: Vec<String>, verbose: bool, filters: Vec<String>, copy_filters: Vec<String>, level: Option<u32>, bar: &ProgressBar, file_version: [u8; 4], deduplicate: bool, _compression: Compression, _align_front: bool, _align_bytes: u32) -> io::Result<()> {
         let mut bfs_file = V1BfsFile::default();
 
         bfs_file.bfs_header.magic = 0x31736662; // "bfs1"

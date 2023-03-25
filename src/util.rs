@@ -186,19 +186,11 @@ pub fn get_sorted_indices<T: Ord>(data: &[T]) -> Vec<usize> {
     indices
 }
 
-/// Adds dummy padding to stream to align a file to default multiple 
-/// such that the end of the file will be aligned with specified alignment.
-///
-/// Files that fit within current alignment will not be aligned.
-pub fn align_file_in_stream(file_writer: &mut BufWriter<File>, file_size: usize) -> io::Result<usize> {
-    return align_file_in_stream_with_alignment(file_writer, file_size, 4096);
-}
-
 /// Adds dummy padding to stream to align a file to a specified multiple
 /// such that the end of the file will be aligned with specified alignment.
 /// 
 /// Files that fit within current alignment will not be aligned.
-pub fn align_file_in_stream_with_alignment(file_writer: &mut BufWriter<File>, file_size: usize, alignment: usize) -> io::Result<usize> {
+pub fn align_file_in_stream(file_writer: &mut BufWriter<File>, file_size: usize, alignment: usize, align_front: bool) -> io::Result<usize> {
     
     // Get space available in current alignment multiple.
     let pos = file_writer.stream_position()? as usize;
@@ -206,7 +198,10 @@ pub fn align_file_in_stream_with_alignment(file_writer: &mut BufWriter<File>, fi
     // Get bytes remaining in slice
     let mut bytes_left_in_current_slice = align_number_to_next_multiple(pos as usize, alignment) - pos;
     file_writer.seek(SeekFrom::Current(bytes_left_in_current_slice as i64))?;
-    return Ok(file_writer.stream_position()? as usize);
+    
+    if align_front { 
+        return Ok(file_writer.stream_position()? as usize); 
+    }
     
     if bytes_left_in_current_slice == 0 {
         bytes_left_in_current_slice += alignment; // In case already aligned, for our fit check
