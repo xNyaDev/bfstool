@@ -1,6 +1,6 @@
 use std::io::{BufRead, Seek};
 
-use crate::Format;
+use crate::formats::Format;
 
 /// An archive type must implement ArchiveReader to be readable
 pub trait ArchiveReader {
