@@ -32,6 +32,10 @@
 //!   - [ ] `bbfs` v2013.03.14 (Ridge Racer Driftopia, Next Car Game Free Technology Demo, Next Car
 //!     Game Technology Sneak Peek 2.0)
 
+pub use archive_reader::read_archive;
+
+mod archive_reader;
+
 /// Available archive formats to use
 pub enum Format {
     /// `bbzf` format
