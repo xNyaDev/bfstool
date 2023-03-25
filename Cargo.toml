@@ -1,0 +1,12 @@
+[package]
+name = "bfstool"
+version = "2.0.0"
+edition = "2021"
+authors = ["xNyaDev <xnyadev@pm.me>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/xNyaDev/bfstool/"
+homepage = "https://github.com/xNyaDev/bfstool/"
+description = "Library to interact with Bugbear (BZF and BFS) archives"
+categories = ["parser-implementations"]
+keywords = ["bugbear", "bzf", "bfs", "archive"]
+
