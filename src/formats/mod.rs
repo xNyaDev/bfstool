@@ -1,3 +1,6 @@
+/// Support for the Bfs2004a archive format
+pub mod bfs2004a;
+
 /// Available archive formats to use
 pub enum Format {
     /// `bbzf` format
