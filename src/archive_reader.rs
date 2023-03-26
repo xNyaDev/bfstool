@@ -97,3 +97,9 @@ impl Display for ReadError {
 }
 
 impl Error for ReadError {}
+
+impl From<io::Error> for ReadError {
+    fn from(error: io::Error) -> Self {
+        ReadError::IoError(error)
+    }
+}
