@@ -10,3 +10,6 @@ description = "Library to interact with Bugbear (BZF and BFS) archives"
 categories = ["parser-implementations"]
 keywords = ["bugbear", "bzf", "bfs", "archive"]
 
+[dependencies]
+nom = "7.1.3"
+

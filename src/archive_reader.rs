@@ -3,6 +3,8 @@ use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::{BufRead, Seek};
 
+use nom::IResult;
+
 use crate::display::{ascii_value, spaced_hex};
 use crate::formats::Format;
 
@@ -102,4 +104,10 @@ impl From<io::Error> for ReadError {
     fn from(error: io::Error) -> Self {
         ReadError::IoError(error)
     }
+}
+
+/// Structs with this trait can be parsed using Nom
+pub trait NomParseable: Sized {
+    /// Parse the struct from a slice
+    fn parse(input: &[u8]) -> IResult<&[u8], Self>;
 }
