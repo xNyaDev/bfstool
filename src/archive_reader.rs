@@ -90,7 +90,7 @@ impl Display for ReadError {
                 )
             }
             ReadError::IoError(error) => {
-                write!(f, "An IO error occured: {}", error)
+                write!(f, "An IO error occurred: {}", error)
             }
         }
     }
