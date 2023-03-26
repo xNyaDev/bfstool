@@ -1,6 +1,9 @@
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::{BufRead, Seek};
 
+use crate::display::{ascii_value, spaced_hex};
 use crate::formats::Format;
 
 /// An archive type must implement ArchiveReader to be readable
@@ -18,6 +21,8 @@ pub fn read_archive<R: BufRead + Seek>(
 }
 
 /// Errors that can occur while reading the archive
+#[derive(Debug)]
+#[non_exhaustive]
 pub enum ReadError {
     /// Archive magic does not match expected value
     InvalidMagic {
@@ -43,3 +48,52 @@ pub enum ReadError {
     /// An IO error occurred
     IoError(io::Error),
 }
+
+impl Display for ReadError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            ReadError::InvalidMagic { expected, got } => {
+                let expected_bytes = expected.to_be_bytes();
+                let got_bytes = got.to_be_bytes();
+                write!(
+                    f,
+                    "Archive magic does not match - expected: {}{}, got: {}{}",
+                    spaced_hex(&expected_bytes),
+                    if let Some(string) = ascii_value(&expected_bytes) {
+                        format!(" ({})", string)
+                    } else {
+                        Default::default()
+                    },
+                    spaced_hex(&got_bytes),
+                    if let Some(string) = ascii_value(&got_bytes) {
+                        format!(" ({})", string)
+                    } else {
+                        Default::default()
+                    },
+                )
+            }
+            ReadError::InvalidVersion { expected, got } => {
+                let expected_bytes = expected.to_be_bytes();
+                let got_bytes = got.to_be_bytes();
+                write!(
+                    f,
+                    "Archive magic does not match - expected: {}, got: {}",
+                    spaced_hex(&expected_bytes),
+                    spaced_hex(&got_bytes),
+                )
+            }
+            ReadError::InvalidHashSize { expected, got } => {
+                write!(
+                    f,
+                    "Archive magic does not match - expected: {}, got: {}",
+                    expected, got,
+                )
+            }
+            ReadError::IoError(error) => {
+                write!(f, "An IO error occured: {}", error)
+            }
+        }
+    }
+}
+
+impl Error for ReadError {}
