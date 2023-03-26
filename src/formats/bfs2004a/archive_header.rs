@@ -5,6 +5,7 @@ use nom::IResult;
 use crate::archive_reader::NomParseable;
 
 /// Archive Header for archive of format Bfs2004a
+#[derive(Debug, Eq, PartialEq)]
 pub struct ArchiveHeader {
     /// File identification magic
     ///
@@ -33,5 +34,56 @@ impl NomParseable for ArchiveHeader {
                 file_count,
             },
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use nom::error::ErrorKind;
+    use nom::Err;
+
+    #[test]
+    fn parsing_test() {
+        use super::*;
+
+        // Test data comes from europe.bfs, first 14h bytes
+        let test_data = vec![
+            0x62, 0x66, 0x73, 0x31, 0x05, 0x05, 0x04, 0x20, 0xDB, 0x0F, 0x00, 0x00, 0x01, 0x00,
+            0x00, 0x00, 0xAC, 0x0F, 0x00, 0x00,
+        ];
+
+        assert_eq!(
+            ArchiveHeader::parse(&test_data),
+            Ok((
+                vec![0xACu8, 0x0F, 0x00, 0x00].as_slice(),
+                ArchiveHeader {
+                    magic: 0x31736662,
+                    version: 0x20040505,
+                    header_end: 0xFDB,
+                    file_count: 1,
+                }
+            ))
+        );
+
+        assert_eq!(
+            ArchiveHeader::parse(&test_data[..0x10]),
+            Ok((
+                vec![].as_slice(),
+                ArchiveHeader {
+                    magic: 0x31736662,
+                    version: 0x20040505,
+                    header_end: 0xFDB,
+                    file_count: 1,
+                }
+            ))
+        );
+
+        assert_eq!(
+            ArchiveHeader::parse(&test_data[..8]),
+            Err(Err::Error(nom::error::Error::<&[u8]> {
+                input: &[],
+                code: ErrorKind::Eof
+            }))
+        );
     }
 }
