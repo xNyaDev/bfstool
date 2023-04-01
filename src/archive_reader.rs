@@ -5,7 +5,9 @@ use std::io::{BufRead, Seek};
 
 use binrw::BinRead;
 
-use crate::archive_reader::ReadError::{InvalidMagic, IoError, ParsingError};
+use crate::archive_reader::ReadError::{
+    InvalidHashSize, InvalidMagic, InvalidVersion, IoError, ParsingError,
+};
 use crate::display::{ascii_value, spaced_hex};
 use crate::formats::*;
 
@@ -16,25 +18,28 @@ pub trait ArchiveReader {
 }
 
 /// Read an archive with the provided format, returning an ArchiveReader impl
+///
+/// If `force` is true then Magic / Version / Hash size check are skipped
 pub fn read_archive<R: BufRead + Seek>(
     archive: &mut R,
     archive_format: Format,
+    force: bool,
 ) -> Result<Box<dyn ArchiveReader>, ReadError> {
     match archive_format {
         Format::Bfs2004a => match bfs2004a::RawArchive::read(archive) {
             Ok(archive) => {
-                if archive.archive_header.magic != bfs2004a::MAGIC {
+                if archive.archive_header.magic != bfs2004a::MAGIC && !force {
                     Err(InvalidMagic {
                         expected: bfs2004a::MAGIC,
                         got: archive.archive_header.magic,
                     })
-                } else if archive.archive_header.version != bfs2004a::VERSION {
-                    Err(InvalidMagic {
+                } else if archive.archive_header.version != bfs2004a::VERSION && !force {
+                    Err(InvalidVersion {
                         expected: bfs2004a::VERSION,
                         got: archive.archive_header.version,
                     })
-                } else if archive.hash_table.hash_size != bfs2004a::HASH_SIZE as u32 {
-                    Err(InvalidMagic {
+                } else if archive.hash_table.hash_size != bfs2004a::HASH_SIZE as u32 && !force {
+                    Err(InvalidHashSize {
                         expected: bfs2004a::HASH_SIZE as u32,
                         got: archive.hash_table.hash_size,
                     })
