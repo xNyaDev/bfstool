@@ -4,6 +4,7 @@ pub use archive_header::ArchiveHeader;
 pub use file_header::FileHeader;
 pub use hash_table::HashTable;
 pub use hash_table_entry::HashTableEntry;
+
 use crate::archive_reader::ArchiveReader;
 
 mod archive_header;
