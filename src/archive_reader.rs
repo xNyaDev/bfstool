@@ -12,6 +12,8 @@ use crate::formats::*;
 pub trait ArchiveReader {
     /// Returns file count of the archive
     fn file_count(&self) -> u64;
+    /// Returns file names of all files in the archive
+    fn file_names(&self) -> Vec<String>;
 }
 
 /// Read an archive with the provided format, returning an ArchiveReader impl

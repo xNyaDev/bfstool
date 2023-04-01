@@ -41,6 +41,13 @@ impl ArchiveReader for RawArchive {
     fn file_count(&self) -> u64 {
         self.archive_header.file_count as u64
     }
+
+    fn file_names(&self) -> Vec<String> {
+        self.file_headers
+            .iter()
+            .map(|file_header| file_header.file_name.clone())
+            .collect()
+    }
 }
 
 #[cfg(test)]
