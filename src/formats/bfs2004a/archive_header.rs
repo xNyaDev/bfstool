@@ -26,11 +26,9 @@ mod tests {
 
     #[test]
     fn parsing_test() {
-        // Test data comes from europe.bfs, first 14h bytes
-        let test_data = vec![
-            0x62, 0x66, 0x73, 0x31, 0x05, 0x05, 0x04, 0x20, 0xDB, 0x0F, 0x00, 0x00, 0x01, 0x00,
-            0x00, 0x00, 0xAC, 0x0F, 0x00, 0x00,
-        ];
+        // Test data comes from europe.bfs, first 10h bytes
+        let test_data = include_bytes!("../../../test_data/bfs2004a.bin");
+        let test_data = &test_data[..=0x10];
 
         let mut test_data_cursor = Cursor::new(test_data);
 
