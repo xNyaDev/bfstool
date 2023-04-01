@@ -5,9 +5,6 @@ use std::io::{BufRead, Seek};
 
 use binrw::BinRead;
 
-use crate::archive_reader::ReadError::{
-    InvalidHashSize, InvalidMagic, InvalidVersion, IoError, ParsingError,
-};
 use crate::display::{ascii_value, spaced_hex};
 use crate::formats::*;
 
@@ -29,17 +26,17 @@ pub fn read_archive<R: BufRead + Seek>(
         Format::Bfs2004a => match bfs2004a::RawArchive::read(archive) {
             Ok(archive) => {
                 if archive.archive_header.magic != bfs2004a::MAGIC && !force {
-                    Err(InvalidMagic {
+                    Err(ReadError::InvalidMagic {
                         expected: bfs2004a::MAGIC,
                         got: archive.archive_header.magic,
                     })
                 } else if archive.archive_header.version != bfs2004a::VERSION && !force {
-                    Err(InvalidVersion {
+                    Err(ReadError::InvalidVersion {
                         expected: bfs2004a::VERSION,
                         got: archive.archive_header.version,
                     })
                 } else if archive.hash_table.hash_size != bfs2004a::HASH_SIZE as u32 && !force {
-                    Err(InvalidHashSize {
+                    Err(ReadError::InvalidHashSize {
                         expected: bfs2004a::HASH_SIZE as u32,
                         got: archive.hash_table.hash_size,
                     })
@@ -48,8 +45,8 @@ pub fn read_archive<R: BufRead + Seek>(
                 }
             }
             Err(error) => match error {
-                binrw::Error::Io(io_error) => Err(IoError(io_error)),
-                error => Err(ParsingError(error.to_string())),
+                binrw::Error::Io(io_error) => Err(ReadError::IoError(io_error)),
+                error => Err(ReadError::ParsingError(error.to_string())),
             },
         },
         _ => todo!(),
@@ -115,7 +112,7 @@ impl Display for ReadError {
                 let got_bytes = got.to_be_bytes();
                 write!(
                     f,
-                    "Archive magic does not match - expected: {}, got: {}",
+                    "Archive version does not match - expected: {}, got: {}",
                     spaced_hex(&expected_bytes),
                     spaced_hex(&got_bytes),
                 )
@@ -123,7 +120,7 @@ impl Display for ReadError {
             ReadError::InvalidHashSize { expected, got } => {
                 write!(
                     f,
-                    "Archive magic does not match - expected: {}, got: {}",
+                    "Archive hash size does not match - expected: {}, got: {}",
                     expected, got,
                 )
             }
