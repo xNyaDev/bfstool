@@ -7,6 +7,7 @@ use binrw::BinRead;
 
 use crate::display::{ascii_value, spaced_hex};
 use crate::formats::*;
+use crate::ArchivedFileInfo;
 
 /// An archive type must implement ArchiveReader to be readable
 pub trait ArchiveReader {
@@ -14,6 +15,10 @@ pub trait ArchiveReader {
     fn file_count(&self) -> u64;
     /// Returns file names of all files in the archive
     fn file_names(&self) -> Vec<String>;
+    /// Returns ArchivedFileInfo for the given file name, if any
+    ///
+    /// If there are multiple files with the same name, all of them are returned
+    fn file_info(&self, file_name: &str) -> Vec<ArchivedFileInfo>;
 }
 
 /// Read an archive with the provided format, returning an ArchiveReader impl

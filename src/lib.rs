@@ -35,10 +35,13 @@
 //!     Game Technology Sneak Peek 2.0)
 
 pub use archive_reader::read_archive;
+pub use archived_file_info::{ArchivedFileInfo, CompressionMethod};
 pub use formats::Format;
 
 /// Provides generics to read a format
 pub mod archive_reader;
+/// Provides information structs about an archived file
+pub mod archived_file_info;
 /// Provides display utilities
 mod display;
 /// Provides all the formats available in the tool as well as their implementations

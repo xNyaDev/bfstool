@@ -6,6 +6,7 @@ pub use hash_table::HashTable;
 pub use hash_table_entry::HashTableEntry;
 
 use crate::archive_reader::ArchiveReader;
+use crate::{ArchivedFileInfo, CompressionMethod};
 
 mod archive_header;
 mod file_header;
@@ -46,6 +47,34 @@ impl ArchiveReader for RawArchive {
         self.file_headers
             .iter()
             .map(|file_header| file_header.file_name.clone())
+            .collect()
+    }
+
+    fn file_info(&self, file_name: &str) -> Vec<ArchivedFileInfo> {
+        self.file_headers
+            .iter()
+            .filter_map(|file_header| {
+                if file_name == file_header.file_name {
+                    Some(ArchivedFileInfo {
+                        offset: file_header.data_offset as usize,
+                        compression_method: if file_header.flags & 0x01 == 0x01 {
+                            CompressionMethod::Zlib
+                        } else {
+                            CompressionMethod::None
+                        },
+                        size: file_header.unpacked_size as usize,
+                        compressed_size: file_header.packed_size as usize,
+                        copies: file_header.file_copies as usize,
+                        hash: if file_header.flags & 0x04 == 0x04 {
+                            Some(file_header.crc32)
+                        } else {
+                            None
+                        },
+                    })
+                } else {
+                    None
+                }
+            })
             .collect()
     }
 }
