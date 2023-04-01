@@ -1,5 +1,5 @@
 use nom::multi::count;
-use nom::number::complete::{le_u16, le_u32, le_u8};
+use nom::number::streaming::{le_u16, le_u32, le_u8};
 use nom::sequence::tuple;
 use nom::IResult;
 

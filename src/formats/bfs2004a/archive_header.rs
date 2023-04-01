@@ -1,4 +1,4 @@
-use nom::number::complete::le_u32;
+use nom::number::streaming::le_u32;
 use nom::sequence::tuple;
 use nom::IResult;
 
@@ -39,8 +39,10 @@ impl NomParseable for ArchiveHeader {
 
 #[cfg(test)]
 mod tests {
-    use nom::error::ErrorKind;
+    use std::num::NonZeroUsize;
+
     use nom::Err;
+    use nom::Needed::Size;
 
     #[test]
     fn parsing_test() {
@@ -80,10 +82,7 @@ mod tests {
 
         assert_eq!(
             ArchiveHeader::parse(&test_data[..8]),
-            Err(Err::Error(nom::error::Error::<&[u8]> {
-                input: &[],
-                code: ErrorKind::Eof
-            }))
+            Err(Err::Incomplete(Size(NonZeroUsize::new(4).unwrap())))
         );
     }
 }

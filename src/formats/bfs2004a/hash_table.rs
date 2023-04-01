@@ -1,5 +1,5 @@
 use nom::multi::count;
-use nom::number::complete::le_u32;
+use nom::number::streaming::le_u32;
 use nom::IResult;
 
 use crate::archive_reader::NomParseable;
