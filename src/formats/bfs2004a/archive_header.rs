@@ -22,6 +22,8 @@ pub struct ArchiveHeader {
 mod tests {
     use std::io::Cursor;
 
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]

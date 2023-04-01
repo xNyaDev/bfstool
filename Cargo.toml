@@ -13,3 +13,6 @@ keywords = ["bugbear", "bzf", "bfs", "archive"]
 [dependencies]
 binrw = "0.11.1"
 
+[dev-dependencies]
+pretty_assertions = "1.3.0"
+
