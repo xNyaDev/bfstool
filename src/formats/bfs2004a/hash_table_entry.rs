@@ -1,7 +1,7 @@
 use binrw::BinRead;
 
 /// A single entry in a [`HashTable`](super::HashTable)
-#[derive(Debug, Eq, PartialEq, BinRead)]
+#[derive(Debug, Default, Eq, PartialEq, BinRead)]
 #[brw(little)]
 pub struct HashTableEntry {
     /// The starting file header index with this hash

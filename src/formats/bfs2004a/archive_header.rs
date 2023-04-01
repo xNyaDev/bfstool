@@ -1,7 +1,7 @@
 use binrw::BinRead;
 
 /// Archive Header for archive of format Bfs2004a
-#[derive(Debug, Eq, PartialEq, BinRead)]
+#[derive(Debug, Default, Eq, PartialEq, BinRead)]
 #[brw(little)]
 pub struct ArchiveHeader {
     /// File identification magic

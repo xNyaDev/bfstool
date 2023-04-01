@@ -3,7 +3,7 @@ use binrw::BinRead;
 use crate::formats::bfs2004a::hash_table_entry::HashTableEntry;
 
 /// Stores information about the hash size and how many files with specific hash are there
-#[derive(Debug, Eq, PartialEq, BinRead)]
+#[derive(Debug, Default, Eq, PartialEq, BinRead)]
 #[brw(little)]
 pub struct HashTable {
     /// Hash size, should be equal to [`HASH_SIZE`](super::HASH_SIZE)
