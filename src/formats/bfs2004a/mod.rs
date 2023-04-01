@@ -4,6 +4,7 @@ pub use archive_header::ArchiveHeader;
 pub use file_header::FileHeader;
 pub use hash_table::HashTable;
 pub use hash_table_entry::HashTableEntry;
+use crate::archive_reader::ArchiveReader;
 
 mod archive_header;
 mod file_header;
@@ -33,6 +34,12 @@ pub struct RawArchive {
     /// All [FileHeader]s
     #[br(count = archive_header.file_count)]
     pub file_headers: Vec<FileHeader>,
+}
+
+impl ArchiveReader for RawArchive {
+    fn file_count(&self) -> u64 {
+        self.archive_header.file_count as u64
+    }
 }
 
 #[cfg(test)]

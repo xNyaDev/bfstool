@@ -25,6 +25,8 @@ in which case all the required changes are documented.
     - [ ] `bzf2` v2002.01.11 (Bugbear Retro Demo 2002, Tough Trucks: Modified Monsters)
 - [ ] BFS
     - [ ] `bfs1` v2004.05.05a (FlatOut)
+      - [x] Reading
+      - [ ] Writing
     - [ ] `bfs1` v2004.05.05b (FlatOut 2)
     - [ ] `bfs1` v2007.03.10 (FlatOut: Ultimate Carnage, FlatOut: Head On, Sega Rally Revo)
     - [ ] `bfs1` v2011.12.20 (Ridge Racer Unbounded)
