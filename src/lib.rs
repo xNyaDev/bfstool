@@ -12,7 +12,7 @@
 //! # Example apps
 //!
 //! 3 example apps using bfstool will be provided:
-//! - [ ] `bfstool-cli` - Command-line application to interact with BFS archives providing advanced
+//! - [x] `bfstool-cli` - Command-line application to interact with BFS archives providing advanced
 //!   functionality, perfect for various automations as well as power users
 //! - [ ] `bfstool-tui` - Command-line application with a terminal user interface providing most
 //!   options a regular user requires
