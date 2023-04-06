@@ -1,7 +1,9 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::fs::File;
 use std::io;
-use std::io::{BufRead, Seek};
+use std::io::{BufRead, BufReader, Seek};
+use std::path::PathBuf;
 
 use binrw::BinRead;
 
@@ -19,6 +21,21 @@ pub trait ArchiveReader {
     ///
     /// If there are multiple files with the same name, all of them are returned
     fn file_info(&self, file_name: &str) -> Vec<ArchivedFileInfo>;
+}
+
+/// Read an archive file with the provided format, returning an ArchiveReader impl
+///
+/// If `force` is true then Magic / Version / Hash size check are skipped
+///
+/// Utility function that opens a file then calls [read_archive] on it
+pub fn read_archive_file(
+    archive: &PathBuf,
+    archive_format: Format,
+    force: bool,
+) -> Result<Box<dyn ArchiveReader>, ReadError> {
+    let file = File::open(archive)?;
+    let mut file_reader = BufReader::new(file);
+    read_archive(&mut file_reader, archive_format, force)
 }
 
 /// Read an archive with the provided format, returning an ArchiveReader impl

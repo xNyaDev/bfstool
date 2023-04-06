@@ -1,7 +1,5 @@
 use std::error::Error;
 use std::fs;
-use std::fs::File;
-use std::io::BufReader;
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
@@ -10,7 +8,7 @@ use tabled::object::{Columns, Segment};
 use tabled::{Alignment, Modify, Style, Table, Tabled};
 
 use bfstool::Format::Bfs2004a;
-use bfstool::{read_archive, CompressionMethod};
+use bfstool::{read_archive_file, CompressionMethod};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -73,11 +71,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cli: Cli = Cli::parse();
     match cli.command {
         Commands::List { archive, force } => {
-            let file = File::open(&archive)?;
             let archive_name = archive;
-
-            let mut file_reader = BufReader::new(file);
-            let archive = read_archive(&mut file_reader, Bfs2004a, force)?;
+            let archive = read_archive_file(&archive_name, Bfs2004a, force)?;
 
             let table_contents = archive
                 .file_names()
