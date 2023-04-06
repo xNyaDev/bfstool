@@ -68,7 +68,7 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
     println!("Listing archive: {}", arguments.archive.to_string_lossy());
     println!(
         "Physical size: {}",
-        fs::metadata(&arguments.archive).unwrap().len()
+        display_size(&(fs::metadata(&arguments.archive).unwrap().len() as usize))
     );
     println!("File count: {}", archive.file_count());
     println!(
