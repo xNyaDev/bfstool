@@ -4,6 +4,7 @@ use clap::{Parser, Subcommand};
 
 mod display;
 mod list;
+mod tree;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -18,11 +19,14 @@ enum Commands {
     /// List all files in the archive
     #[clap(visible_alias = "l", visible_alias = "ls")]
     List(list::Arguments),
+    /// Display all files in the archive in a tree-like fashion
+    Tree(tree::Arguments),
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli: Cli = Cli::parse();
     match cli.command {
         Commands::List(arguments) => list::run(arguments),
+        Commands::Tree(arguments) => tree::run(arguments),
     }
 }
