@@ -42,14 +42,25 @@ fn insert_tree_file(directory: &mut TreeDirectory, to_create: &mut VecDeque<&str
         })
     } else {
         let new_directory_name = to_create.pop_front().unwrap();
-        let mut new_directory = TreeDirectory {
-            name: new_directory_name.to_string(),
-            size: 0,
-            directory_children: vec![],
-            file_children: vec![],
+        match directory
+            .directory_children
+            .iter_mut()
+            .find(|directory| directory.name == new_directory_name)
+        {
+            Some(directory) => {
+                insert_tree_file(directory, to_create, size);
+            }
+            None => {
+                let mut new_directory = TreeDirectory {
+                    name: new_directory_name.to_string(),
+                    size: 0,
+                    directory_children: vec![],
+                    file_children: vec![],
+                };
+                insert_tree_file(&mut new_directory, to_create, size);
+                directory.directory_children.push(new_directory);
+            }
         };
-        insert_tree_file(&mut new_directory, to_create, size);
-        directory.directory_children.push(new_directory);
     }
 }
 
