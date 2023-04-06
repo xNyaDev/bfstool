@@ -12,7 +12,7 @@ pub struct FileHeader {
     pub flags: u8,
     /// How many additional copies of this file are archived
     pub file_copies: u8,
-    #[br(align_before = 0x4)]
+    #[br(pad_before = 0x2)]
     /// Where is the file data stored, absolute offset
     pub data_offset: u32,
     /// File size of the file after unpacking
