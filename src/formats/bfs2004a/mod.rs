@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn parsing_test() {
         // Test data comes from europe.bfs, the entire header section
-        let test_data = include_bytes!("../../../test_data/bfs2004a.bin");
+        let test_data = include_bytes!("../../../test_data/bfs2004a/europe.bin");
 
         let mut test_data_cursor = Cursor::new(test_data);
 
@@ -131,5 +131,14 @@ mod tests {
                 }],
             }
         );
+
+        // Test data comes from common1.bfs, the entire header section
+        let test_data = include_bytes!("../../../test_data/bfs2004a/common1.bin");
+
+        let mut test_data_cursor = Cursor::new(test_data);
+
+        let result = RawArchive::read(&mut test_data_cursor);
+
+        assert!(result.is_ok());
     }
 }

@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn parsing_test() {
         // Test data comes from europe.bfs, FACh-FDAh
-        let test_data = include_bytes!("../../../test_data/bfs2004a.bin");
+        let test_data = include_bytes!("../../../test_data/bfs2004a/europe.bin");
         let test_data = &test_data[0xFAC..=0xFDA];
 
         let mut test_data_cursor = Cursor::new(test_data);
@@ -72,6 +72,30 @@ mod tests {
                 crc32: 0xF6260C6E,
                 file_name_length: 0x19,
                 file_name: "data/language/version.ini".to_string(),
+                file_copies_offsets: vec![],
+            }
+        );
+
+        // Test data comes from common1.bfs, 54E7h-551Bh
+        let test_data = include_bytes!("../../../test_data/bfs2004a/common1.bin");
+        let test_data = &test_data[0x54E7..=0x551B];
+
+        let mut test_data_cursor = Cursor::new(test_data);
+
+        let result = FileHeader::read(&mut test_data_cursor);
+
+        assert!(result.is_ok());
+        assert_eq!(
+            result.unwrap(),
+            FileHeader {
+                flags: 0x05,
+                file_copies: 0,
+                data_offset: 0x87FE5A1,
+                unpacked_size: 0x5A4,
+                packed_size: 0x21F,
+                crc32: 0xE91D1F8B,
+                file_name_length: 0x1F,
+                file_name: "data/shader/fix_lightmapped.sha".to_string(),
                 file_copies_offsets: vec![],
             }
         );

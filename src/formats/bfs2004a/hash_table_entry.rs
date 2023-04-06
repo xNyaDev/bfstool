@@ -21,7 +21,7 @@ mod tests {
     #[test]
     fn parsing_test() {
         // Test data comes from europe.bfs, 464h-467h
-        let test_data = include_bytes!("../../../test_data/bfs2004a.bin");
+        let test_data = include_bytes!("../../../test_data/bfs2004a/europe.bin");
         let test_data = &test_data[0x464..=0x467];
 
         let mut test_data_cursor = Cursor::new(test_data);

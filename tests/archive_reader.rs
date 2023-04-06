@@ -8,7 +8,7 @@ use bfstool::{ArchivedFileInfo, CompressionMethod};
 #[test]
 fn test_bfs2004a() -> Result<(), Box<dyn Error>> {
     let archive = bfstool::read_archive_file(
-        &PathBuf::from("test_data/bfs2004a.bin"),
+        &PathBuf::from("test_data/bfs2004a/europe.bin"),
         bfstool::Format::Bfs2004a,
         false,
     )?;
