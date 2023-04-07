@@ -1,4 +1,7 @@
-use std::io::{BufRead, Seek};
+use std::fs::File;
+use std::io::{BufRead, Seek, SeekFrom};
+use std::path::{Path, PathBuf};
+use std::{fs, io};
 
 use binrw::BinRead;
 
@@ -8,6 +11,7 @@ pub use hash_table::HashTable;
 pub use hash_table_entry::HashTableEntry;
 
 use crate::archive_reader::ArchiveReader;
+use crate::compression::extract_data;
 use crate::{ArchivedFileInfo, CompressionMethod};
 
 mod archive_header;
@@ -88,6 +92,38 @@ impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
                 }
             })
             .collect()
+    }
+
+    fn extract_files(&mut self, file_names: Vec<String>, folder_name: &Path) -> io::Result<()> {
+        fs::create_dir_all(folder_name)?;
+
+        self.raw_archive
+            .file_headers
+            .iter_mut()
+            .try_for_each(|file_header| {
+                if file_names.contains(&file_header.file_name) {
+                    let file_path = PathBuf::from(&file_header.file_name);
+                    fs::create_dir_all(
+                        folder_name.join(file_path.parent().unwrap_or(Path::new(""))),
+                    )?;
+                    self.reader
+                        .seek(SeekFrom::Start(file_header.data_offset as u64))?;
+                    let method = if file_header.flags & 0x01 == 0x01 {
+                        CompressionMethod::Zlib
+                    } else {
+                        CompressionMethod::None
+                    };
+                    let mut output_file = File::create(folder_name.join(file_path))?;
+                    extract_data(
+                        &mut self.reader,
+                        &mut output_file,
+                        file_header.packed_size as u64,
+                        method,
+                    )?;
+                }
+                Ok::<(), io::Error>(())
+            })?;
+        Ok(())
     }
 }
 

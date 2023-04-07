@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader, Seek};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use binrw::BinRead;
 
@@ -21,6 +21,8 @@ pub trait ArchiveReader {
     ///
     /// If there are multiple files with the same name, all of them are returned
     fn file_info(&self, file_name: &str) -> Vec<ArchivedFileInfo>;
+    /// Extracts listed files from the archive to the given folder
+    fn extract_files(&mut self, file_names: Vec<String>, folder_name: &Path) -> io::Result<()>;
 }
 
 /// Read an archive file with the provided format, returning an ArchiveReader impl
