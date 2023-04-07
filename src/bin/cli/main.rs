@@ -3,6 +3,7 @@ use std::error::Error;
 use clap::{Parser, Subcommand};
 
 mod display;
+mod extract;
 mod list;
 mod tree;
 
@@ -21,6 +22,9 @@ enum Commands {
     List(list::Arguments),
     /// Display all files in the archive in a tree-like fashion
     Tree(tree::Arguments),
+    /// Extract all files from the archive
+    #[clap(visible_alias = "e", visible_alias = "x")]
+    Extract(extract::Arguments),
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -28,5 +32,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     match cli.command {
         Commands::List(arguments) => list::run(arguments),
         Commands::Tree(arguments) => tree::run(arguments),
+        Commands::Extract(arguments) => extract::run(arguments),
     }
 }
