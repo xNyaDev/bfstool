@@ -1,3 +1,5 @@
+use std::io::{BufRead, Seek};
+
 use binrw::BinRead;
 
 pub use archive_header::ArchiveHeader;
@@ -22,6 +24,14 @@ pub const MAGIC: u32 = u32::from_le_bytes(*b"bfs1");
 /// File version
 pub const VERSION: u32 = 0x20040505;
 
+/// Archive that has been read from a .bfs file
+pub struct ReadArchive<R: BufRead + Seek> {
+    /// Seekable reader the archive has been read from
+    pub reader: R,
+    /// Raw archive contents
+    pub raw_archive: RawArchive,
+}
+
 /// Raw archive contents that can be read directly from a .bfs file or written to one
 #[derive(Debug, Default, Eq, PartialEq, BinRead)]
 #[brw(little)]
@@ -38,20 +48,22 @@ pub struct RawArchive {
     pub file_headers: Vec<FileHeader>,
 }
 
-impl ArchiveReader for RawArchive {
+impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
     fn file_count(&self) -> u64 {
-        self.archive_header.file_count as u64
+        self.raw_archive.archive_header.file_count as u64
     }
 
     fn file_names(&self) -> Vec<String> {
-        self.file_headers
+        self.raw_archive
+            .file_headers
             .iter()
             .map(|file_header| file_header.file_name.clone())
             .collect()
     }
 
     fn file_info(&self, file_name: &str) -> Vec<ArchivedFileInfo> {
-        self.file_headers
+        self.raw_archive
+            .file_headers
             .iter()
             .filter_map(|file_header| {
                 if file_name == file_header.file_name {

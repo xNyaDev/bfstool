@@ -34,38 +34,41 @@ pub fn read_archive_file(
     force: bool,
 ) -> Result<Box<dyn ArchiveReader>, ReadError> {
     let file = File::open(archive)?;
-    let mut file_reader = BufReader::new(file);
-    read_archive(&mut file_reader, archive_format, force)
+    let file_reader = BufReader::new(file);
+    read_archive(file_reader, archive_format, force)
 }
 
 /// Read an archive with the provided format, returning an ArchiveReader impl
 ///
 /// If `force` is true then Magic / Version / Hash size check are skipped
-pub fn read_archive<R: BufRead + Seek>(
-    archive: &mut R,
+pub fn read_archive<R: BufRead + Seek + 'static>(
+    mut archive: R,
     archive_format: Format,
     force: bool,
 ) -> Result<Box<dyn ArchiveReader>, ReadError> {
     match archive_format {
-        Format::Bfs2004a => match bfs2004a::RawArchive::read(archive) {
-            Ok(archive) => {
-                if archive.archive_header.magic != bfs2004a::MAGIC && !force {
+        Format::Bfs2004a => match bfs2004a::RawArchive::read(&mut archive) {
+            Ok(raw_archive) => {
+                if raw_archive.archive_header.magic != bfs2004a::MAGIC && !force {
                     Err(ReadError::InvalidMagic {
                         expected: bfs2004a::MAGIC,
-                        got: archive.archive_header.magic,
+                        got: raw_archive.archive_header.magic,
                     })
-                } else if archive.archive_header.version != bfs2004a::VERSION && !force {
+                } else if raw_archive.archive_header.version != bfs2004a::VERSION && !force {
                     Err(ReadError::InvalidVersion {
                         expected: bfs2004a::VERSION,
-                        got: archive.archive_header.version,
+                        got: raw_archive.archive_header.version,
                     })
-                } else if archive.hash_table.hash_size != bfs2004a::HASH_SIZE as u32 && !force {
+                } else if raw_archive.hash_table.hash_size != bfs2004a::HASH_SIZE as u32 && !force {
                     Err(ReadError::InvalidHashSize {
                         expected: bfs2004a::HASH_SIZE as u32,
-                        got: archive.hash_table.hash_size,
+                        got: raw_archive.hash_table.hash_size,
                     })
                 } else {
-                    Ok(Box::new(archive))
+                    Ok(Box::new(bfs2004a::ReadArchive {
+                        reader: archive,
+                        raw_archive,
+                    }))
                 }
             }
             Err(error) => match error {
