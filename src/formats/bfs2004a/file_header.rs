@@ -1,3 +1,4 @@
+use crate::{ArchivedFileInfo, CompressionMethod};
 use binrw::BinRead;
 
 /// Header for a single file in a Bfs2004a archive
@@ -40,6 +41,27 @@ pub struct FileHeader {
     /// Absolute offsets of all additional file copies
     #[br(count = file_copies)]
     pub file_copies_offsets: Vec<u32>,
+}
+
+impl From<&FileHeader> for ArchivedFileInfo {
+    fn from(file_header: &FileHeader) -> Self {
+        Self {
+            offset: file_header.data_offset as usize,
+            compression_method: if file_header.flags & 0x01 == 0x01 {
+                CompressionMethod::Zlib
+            } else {
+                CompressionMethod::None
+            },
+            size: file_header.unpacked_size as usize,
+            compressed_size: file_header.packed_size as usize,
+            copies: file_header.file_copies as usize,
+            hash: if file_header.flags & 0x04 == 0x04 {
+                Some(file_header.crc32)
+            } else {
+                None
+            },
+        }
+    }
 }
 
 #[cfg(test)]

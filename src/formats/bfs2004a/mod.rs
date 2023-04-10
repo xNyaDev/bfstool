@@ -12,7 +12,7 @@ pub use hash_table_entry::HashTableEntry;
 
 use crate::archive_reader::ArchiveReader;
 use crate::compression::extract_data;
-use crate::{ArchivedFileInfo, CompressionMethod};
+use crate::ArchivedFileInfo;
 
 mod archive_header;
 mod file_header;
@@ -71,22 +71,7 @@ impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
             .iter()
             .filter_map(|file_header| {
                 if file_name == file_header.file_name {
-                    Some(ArchivedFileInfo {
-                        offset: file_header.data_offset as usize,
-                        compression_method: if file_header.flags & 0x01 == 0x01 {
-                            CompressionMethod::Zlib
-                        } else {
-                            CompressionMethod::None
-                        },
-                        size: file_header.unpacked_size as usize,
-                        compressed_size: file_header.packed_size as usize,
-                        copies: file_header.file_copies as usize,
-                        hash: if file_header.flags & 0x04 == 0x04 {
-                            Some(file_header.crc32)
-                        } else {
-                            None
-                        },
-                    })
+                    Some(ArchivedFileInfo::from(file_header))
                 } else {
                     None
                 }
@@ -99,7 +84,7 @@ impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
 
         self.raw_archive
             .file_headers
-            .iter_mut()
+            .iter()
             .try_for_each(|file_header| {
                 if file_names.contains(&file_header.file_name) {
                     let file_path = PathBuf::from(&file_header.file_name);
@@ -108,17 +93,13 @@ impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
                     )?;
                     self.reader
                         .seek(SeekFrom::Start(file_header.data_offset as u64))?;
-                    let method = if file_header.flags & 0x01 == 0x01 {
-                        CompressionMethod::Zlib
-                    } else {
-                        CompressionMethod::None
-                    };
+                    let archived_file_info = ArchivedFileInfo::from(file_header);
                     let mut output_file = File::create(folder_name.join(file_path))?;
                     extract_data(
                         &mut self.reader,
                         &mut output_file,
-                        file_header.packed_size as u64,
-                        method,
+                        archived_file_info.compressed_size as u64,
+                        archived_file_info.compression_method,
                     )?;
                 }
                 Ok::<(), io::Error>(())
