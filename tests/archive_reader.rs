@@ -3,7 +3,8 @@ use std::path::PathBuf;
 
 use pretty_assertions::assert_eq;
 
-use bfstool::{ArchivedFileInfo, CompressionMethod};
+use bfstool::ArchivedFileInfo;
+use bfstool::CompressionMethod;
 
 #[test]
 fn test_bfs2004a() -> Result<(), Box<dyn Error>> {

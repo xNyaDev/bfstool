@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use crate::CompressionMethod;
 
 /// Provides information about an archived file, without the name
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -15,31 +15,4 @@ pub struct ArchivedFileInfo {
     pub copies: usize,
     /// File hash
     pub hash: Option<u32>,
-}
-
-/// Available compression methods
-#[derive(Debug, Default, Eq, PartialEq)]
-pub enum CompressionMethod {
-    /// No compression
-    #[default]
-    None,
-    /// zlib compression
-    Zlib,
-}
-
-impl Display for CompressionMethod {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                CompressionMethod::None => {
-                    "none"
-                }
-                CompressionMethod::Zlib => {
-                    "zlib"
-                }
-            }
-        )
-    }
 }

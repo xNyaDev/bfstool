@@ -1,5 +1,7 @@
-use crate::{ArchivedFileInfo, CompressionMethod};
 use binrw::BinRead;
+
+use crate::ArchivedFileInfo;
+use crate::CompressionMethod;
 
 /// Header for a single file in a Bfs2004a archive
 #[derive(Debug, Default, Eq, PartialEq, BinRead)]
