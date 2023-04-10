@@ -79,7 +79,12 @@ impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
             .collect()
     }
 
-    fn extract_files(&mut self, file_names: Vec<String>, folder_name: &Path) -> io::Result<()> {
+    fn extract_files<'a>(
+        &mut self,
+        file_names: Vec<String>,
+        folder_name: &Path,
+        callback: Box<dyn Fn(&str, ArchivedFileInfo) + 'a>,
+    ) -> io::Result<()> {
         fs::create_dir_all(folder_name)?;
 
         self.raw_archive
@@ -101,6 +106,7 @@ impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
                         archived_file_info.compressed_size as u64,
                         archived_file_info.compression_method,
                     )?;
+                    callback(&file_header.file_name, archived_file_info);
                 }
                 Ok::<(), io::Error>(())
             })?;

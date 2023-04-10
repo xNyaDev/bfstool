@@ -21,7 +21,7 @@ pub fn extract_data<R: BufRead, W: Write>(
 }
 
 /// Available compression methods
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub enum CompressionMethod {
     /// No compression
     #[default]

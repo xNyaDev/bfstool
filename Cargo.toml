@@ -17,6 +17,7 @@ keywords = ["bugbear", "bzf", "bfs", "archive"]
 binrw = "0.11.1"
 clap = { version = "4.2.1", optional = true, features = ["derive"] }
 flate2 = "1.0.25"
+indicatif = { version = "0.17.3", optional = true }
 number_prefix = { version = "0.4.0", optional = true }
 tabled = { version = "0.10.0", optional = true }
 termtree = { version = "0.4.1", optional = true }
@@ -28,7 +29,14 @@ tauri-winres = { git = "https://github.com/xNyaDev/winres.git", optional = true 
 pretty_assertions = "1.3.0"
 
 [features]
-cli = ["dep:clap", "dep:number_prefix", "dep:tabled", "dep:termtree", "dep:tauri-winres"]
+cli = [
+    "dep:clap",
+    "dep:indicatif",
+    "dep:number_prefix",
+    "dep:tabled",
+    "dep:tauri-winres",
+    "dep:termtree"
+]
 default = ["cli"]
 
 [[bin]]

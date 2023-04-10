@@ -22,7 +22,12 @@ pub trait ArchiveReader {
     /// If there are multiple files with the same name, all of them are returned
     fn file_info(&self, file_name: &str) -> Vec<ArchivedFileInfo>;
     /// Extracts listed files from the archive to the given folder
-    fn extract_files(&mut self, file_names: Vec<String>, folder_name: &Path) -> io::Result<()>;
+    fn extract_files<'a>(
+        &mut self,
+        file_names: Vec<String>,
+        folder_name: &Path,
+        callback: Box<dyn Fn(&str, ArchivedFileInfo) + 'a>,
+    ) -> io::Result<()>;
 }
 
 /// Read an archive file with the provided format, returning an ArchiveReader impl
