@@ -23,7 +23,7 @@ pub struct Arguments {
 #[derive(Debug)]
 struct TreeDirectory {
     name: String,
-    size: usize,
+    size: u64,
     directory_children: Vec<TreeDirectory>,
     file_children: Vec<TreeFile>,
 }
@@ -31,10 +31,10 @@ struct TreeDirectory {
 #[derive(Debug)]
 struct TreeFile {
     name: String,
-    size: usize,
+    size: u64,
 }
 
-fn insert_tree_file(directory: &mut TreeDirectory, to_create: &mut VecDeque<&str>, size: usize) {
+fn insert_tree_file(directory: &mut TreeDirectory, to_create: &mut VecDeque<&str>, size: u64) {
     if to_create.len() == 1 {
         directory.file_children.push(TreeFile {
             name: to_create.pop_front().unwrap().to_string(),
@@ -140,7 +140,7 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
     println!("Listing archive: {}", arguments.archive.to_string_lossy());
     println!(
         "Physical size: {}",
-        display_size(&(fs::metadata(&arguments.archive).unwrap().len() as usize))
+        display_size(&fs::metadata(&arguments.archive).unwrap().len())
     );
     println!("File count: {}", archive.file_count());
     println!();

@@ -48,15 +48,15 @@ pub struct FileHeader {
 impl From<&FileHeader> for ArchivedFileInfo {
     fn from(file_header: &FileHeader) -> Self {
         Self {
-            offset: file_header.data_offset as usize,
+            offset: file_header.data_offset as u64,
             compression_method: if file_header.flags & 0x01 == 0x01 {
                 CompressionMethod::Zlib
             } else {
                 CompressionMethod::None
             },
-            size: file_header.unpacked_size as usize,
-            compressed_size: file_header.packed_size as usize,
-            copies: file_header.file_copies as usize,
+            size: file_header.unpacked_size as u64,
+            compressed_size: file_header.packed_size as u64,
+            copies: file_header.file_copies as u64,
             hash: if file_header.flags & 0x04 == 0x04 {
                 Some(file_header.crc32)
             } else {

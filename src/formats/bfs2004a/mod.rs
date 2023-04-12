@@ -20,7 +20,7 @@ mod hash_table;
 mod hash_table_entry;
 
 /// Amount of entries in the hash table
-pub const HASH_SIZE: usize = 0x3E5;
+pub const HASH_SIZE: u32 = 0x3E5;
 
 /// File magic signature
 pub const MAGIC: u32 = u32::from_le_bytes(*b"bfs1");

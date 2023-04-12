@@ -4,15 +4,15 @@ use crate::CompressionMethod;
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct ArchivedFileInfo {
     /// Offset of this file in the archive
-    pub offset: usize,
+    pub offset: u64,
     /// Compression method used by this file
     pub compression_method: CompressionMethod,
     /// Uncompressed size of the file
-    pub size: usize,
+    pub size: u64,
     /// Compressed size of the file
-    pub compressed_size: usize,
+    pub compressed_size: u64,
     /// Number of copies of this file
-    pub copies: usize,
+    pub copies: u64,
     /// File hash
     pub hash: Option<u32>,
 }

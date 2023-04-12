@@ -28,16 +28,16 @@ pub struct TableFileInfo {
     pub method: CompressionMethod,
 
     #[tabled(rename = "Size", display_with = "display_size")]
-    pub size: usize,
+    pub size: u64,
 
     #[tabled(rename = "Compressed", display_with = "display_size")]
-    pub compressed: usize,
+    pub compressed: u64,
 
     #[tabled(rename = "Copies")]
-    pub copies: usize,
+    pub copies: u64,
 
     #[tabled(rename = "Offset", display_with = "display_offset")]
-    pub offset: usize,
+    pub offset: u64,
 
     #[tabled(rename = "File Name")]
     pub file_name: String,
@@ -68,7 +68,7 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
     println!("Listing archive: {}", arguments.archive.to_string_lossy());
     println!(
         "Physical size: {}",
-        display_size(&(fs::metadata(&arguments.archive).unwrap().len() as usize))
+        display_size(&fs::metadata(&arguments.archive).unwrap().len())
     );
     println!("File count: {}", archive.file_count());
     println!(
