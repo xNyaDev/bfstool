@@ -3,9 +3,9 @@ use std::fs;
 use std::path::PathBuf;
 
 use clap::Parser;
-use tabled::object::{Columns, Segment};
-use tabled::Tabled;
-use tabled::{Alignment, Modify, Style, Table};
+use tabled::settings::object::{Columns, Segment};
+use tabled::settings::{Alignment, Modify, Style};
+use tabled::{Table, Tabled};
 
 use bfstool::read_archive_file;
 use bfstool::CompressionMethod;
