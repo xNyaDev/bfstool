@@ -161,7 +161,7 @@ mod tests {
                 },
                 file_header_offsets: vec![0xFAC],
                 hash_table: HashTable {
-                    hash_size: HASH_SIZE as u32,
+                    hash_size: HASH_SIZE,
                     entries: expected_result_hash_table_entries
                 },
                 file_headers: vec![FileHeader {
