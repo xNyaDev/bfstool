@@ -10,7 +10,8 @@ pub use file_header::FileHeader;
 pub use hash_table::HashTable;
 pub use hash_table_entry::HashTableEntry;
 
-use crate::archive_reader::ArchiveReader;
+use crate::archive_reader::ReadError::{InvalidHashSize, InvalidMagic, InvalidVersion};
+use crate::archive_reader::{ArchiveReader, ReadError};
 use crate::compression::extract_data;
 use crate::ArchivedFileInfo;
 
@@ -112,6 +113,33 @@ impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
             })?;
         Ok(())
     }
+}
+
+/// Checks the magic, version and hash size of the archive to ensure it's a valid Bfs2004a archive
+pub fn check_archive<R: BufRead + Seek>(archive: &mut R) -> Result<(), ReadError> {
+    archive.seek(SeekFrom::Start(0))?;
+    let archive_header = ArchiveHeader::read(archive)?;
+    if archive_header.magic != MAGIC {
+        return Err(InvalidMagic {
+            expected: MAGIC,
+            got: archive_header.magic,
+        });
+    }
+    if archive_header.version != VERSION {
+        return Err(InvalidVersion {
+            expected: VERSION,
+            got: archive_header.version,
+        });
+    }
+    archive.seek(SeekFrom::Start(0x10 + archive_header.file_count as u64 * 4))?;
+    let hash_size = u32::read_le(archive)?;
+    if hash_size != HASH_SIZE {
+        return Err(InvalidHashSize {
+            expected: HASH_SIZE,
+            got: hash_size,
+        });
+    }
+    Ok(())
 }
 
 #[cfg(test)]

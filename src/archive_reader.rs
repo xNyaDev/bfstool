@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io;
-use std::io::{BufRead, BufReader, Seek};
+use std::io::{BufRead, BufReader, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
 use binrw::BinRead;
@@ -54,35 +54,17 @@ pub fn read_archive<R: BufRead + Seek + 'static>(
     force: bool,
 ) -> Result<Box<dyn ArchiveReader>, ReadError> {
     match archive_format {
-        Format::Bfs2004a => match bfs2004a::RawArchive::read(&mut archive) {
-            Ok(raw_archive) => {
-                if raw_archive.archive_header.magic != bfs2004a::MAGIC && !force {
-                    Err(ReadError::InvalidMagic {
-                        expected: bfs2004a::MAGIC,
-                        got: raw_archive.archive_header.magic,
-                    })
-                } else if raw_archive.archive_header.version != bfs2004a::VERSION && !force {
-                    Err(ReadError::InvalidVersion {
-                        expected: bfs2004a::VERSION,
-                        got: raw_archive.archive_header.version,
-                    })
-                } else if raw_archive.hash_table.hash_size != bfs2004a::HASH_SIZE as u32 && !force {
-                    Err(ReadError::InvalidHashSize {
-                        expected: bfs2004a::HASH_SIZE as u32,
-                        got: raw_archive.hash_table.hash_size,
-                    })
-                } else {
-                    Ok(Box::new(bfs2004a::ReadArchive {
-                        reader: archive,
-                        raw_archive,
-                    }))
-                }
+        Format::Bfs2004a => {
+            if !force {
+                bfs2004a::check_archive(&mut archive)?;
             }
-            Err(error) => match error {
-                binrw::Error::Io(io_error) => Err(ReadError::IoError(io_error)),
-                error => Err(ReadError::ParsingError(error.to_string())),
-            },
-        },
+            archive.seek(SeekFrom::Start(0))?;
+            let raw_archive = bfs2004a::RawArchive::read(&mut archive)?;
+            Ok(Box::new(bfs2004a::ReadArchive {
+                reader: archive,
+                raw_archive,
+            }))
+        }
         _ => todo!(),
     }
 }
@@ -173,5 +155,14 @@ impl Error for ReadError {}
 impl From<io::Error> for ReadError {
     fn from(error: io::Error) -> Self {
         ReadError::IoError(error)
+    }
+}
+
+impl From<binrw::Error> for ReadError {
+    fn from(error: binrw::Error) -> Self {
+        match error {
+            binrw::Error::Io(io_error) => ReadError::IoError(io_error),
+            error => ReadError::ParsingError(error.to_string()),
+        }
     }
 }
