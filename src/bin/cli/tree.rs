@@ -108,14 +108,8 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
     let archive = read_archive_file(&arguments.archive, Bfs2004a, arguments.force)?;
 
     let mut tree = archive
-        .file_names()
-        .iter()
-        .map(|name| (name, archive.file_info(name)))
-        .flat_map(|(name, file_info_vec)| {
-            file_info_vec
-                .into_iter()
-                .map(move |file_info| (name, file_info))
-        })
+        .multiple_file_info(archive.file_names())
+        .into_iter()
         .fold(
             TreeDirectory {
                 name: arguments

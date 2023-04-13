@@ -47,21 +47,15 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
     let archive = read_archive_file(&arguments.archive, Bfs2004a, arguments.force)?;
 
     let table_contents = archive
-        .file_names()
-        .iter()
-        .map(|name| (name, archive.file_info(name)))
-        .flat_map(|(name, file_info_vec)| {
-            file_info_vec
-                .into_iter()
-                .map(move |file_info| (name, file_info))
-        })
+        .multiple_file_info(archive.file_names())
+        .into_iter()
         .map(|(name, file_info)| TableFileInfo {
             method: file_info.compression_method,
             size: file_info.size,
             compressed: file_info.compressed_size,
             copies: file_info.copies,
             offset: file_info.offset,
-            file_name: name.to_string(),
+            file_name: name,
         })
         .collect::<Vec<TableFileInfo>>();
 
