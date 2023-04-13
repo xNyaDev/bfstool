@@ -1,12 +1,13 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
-use std::io;
 use std::io::{BufRead, BufReader, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
+use std::{fs, io};
 
 use binrw::BinRead;
 
+use crate::compression::extract_data;
 use crate::display::{ascii_value, spaced_hex};
 use crate::formats::*;
 use crate::ArchivedFileInfo;
@@ -24,7 +25,7 @@ pub trait ArchiveReader<R: BufRead + Seek> {
     /// Returns ArchivedFileInfo for the given file names as a tuple of (name, info), if present
     ///
     /// If there are multiple files with the same name, all of them are returned
-    fn multiple_file_info(&self, file_names: Vec<String>) -> Vec<(&str, ArchivedFileInfo)>;
+    fn multiple_file_info(&self, file_names: Vec<String>) -> Vec<(String, ArchivedFileInfo)>;
     /// Returns a mutable reference to the internal reader
     fn reader(&mut self) -> &mut R;
     /// Extracts listed files from the archive to the given folder
@@ -33,7 +34,28 @@ pub trait ArchiveReader<R: BufRead + Seek> {
         file_names: Vec<String>,
         folder_name: &Path,
         callback: Box<dyn Fn(&str, ArchivedFileInfo) + 'a>,
-    ) -> io::Result<()>;
+    ) -> io::Result<()> {
+        let file_info = self.multiple_file_info(file_names);
+        let reader = self.reader();
+        file_info
+            .into_iter()
+            .try_for_each(|(file_name, archived_file_info)| {
+                let file_path = PathBuf::from(&file_name);
+                fs::create_dir_all(folder_name.join(file_path.parent().unwrap_or(Path::new(""))))?;
+                let mut output_file = File::create(folder_name.join(file_path))?;
+
+                reader.seek(SeekFrom::Start(archived_file_info.offset))?;
+                extract_data(
+                    reader,
+                    &mut output_file,
+                    archived_file_info.compressed_size,
+                    archived_file_info.compression_method,
+                )?;
+                callback(file_name.as_ref(), archived_file_info);
+
+                Ok(())
+            })
+    }
 }
 
 /// Read an archive file with the provided format, returning an ArchiveReader impl

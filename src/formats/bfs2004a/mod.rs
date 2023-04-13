@@ -1,7 +1,4 @@
-use std::fs::File;
 use std::io::{BufRead, Seek, SeekFrom};
-use std::path::{Path, PathBuf};
-use std::{fs, io};
 
 use binrw::BinRead;
 
@@ -12,7 +9,6 @@ pub use hash_table_entry::HashTableEntry;
 
 use crate::archive_reader::ReadError::{InvalidHashSize, InvalidMagic, InvalidVersion};
 use crate::archive_reader::{ArchiveReader, ReadError};
-use crate::compression::extract_data;
 use crate::ArchivedFileInfo;
 
 mod archive_header;
@@ -80,13 +76,16 @@ impl<R: BufRead + Seek> ArchiveReader<R> for ReadArchive<R> {
             .collect()
     }
 
-    fn multiple_file_info(&self, file_names: Vec<String>) -> Vec<(&str, ArchivedFileInfo)> {
+    fn multiple_file_info(&self, file_names: Vec<String>) -> Vec<(String, ArchivedFileInfo)> {
         self.raw_archive
             .file_headers
             .iter()
             .filter_map(|file_header| {
                 if file_names.contains(&file_header.file_name) {
-                    Some((file_header.file_name.as_ref(), ArchivedFileInfo::from(file_header)))
+                    Some((
+                        file_header.file_name.clone(),
+                        ArchivedFileInfo::from(file_header),
+                    ))
                 } else {
                     None
                 }
@@ -96,40 +95,6 @@ impl<R: BufRead + Seek> ArchiveReader<R> for ReadArchive<R> {
 
     fn reader(&mut self) -> &mut R {
         &mut self.reader
-    }
-
-    fn extract_files<'a>(
-        &mut self,
-        file_names: Vec<String>,
-        folder_name: &Path,
-        callback: Box<dyn Fn(&str, ArchivedFileInfo) + 'a>,
-    ) -> io::Result<()> {
-        fs::create_dir_all(folder_name)?;
-
-        self.raw_archive
-            .file_headers
-            .iter()
-            .try_for_each(|file_header| {
-                if file_names.contains(&file_header.file_name) {
-                    let file_path = PathBuf::from(&file_header.file_name);
-                    fs::create_dir_all(
-                        folder_name.join(file_path.parent().unwrap_or(Path::new(""))),
-                    )?;
-                    self.reader
-                        .seek(SeekFrom::Start(file_header.data_offset as u64))?;
-                    let archived_file_info = ArchivedFileInfo::from(file_header);
-                    let mut output_file = File::create(folder_name.join(file_path))?;
-                    extract_data(
-                        &mut self.reader,
-                        &mut output_file,
-                        archived_file_info.compressed_size as u64,
-                        archived_file_info.compression_method,
-                    )?;
-                    callback(&file_header.file_name, archived_file_info);
-                }
-                Ok::<(), io::Error>(())
-            })?;
-        Ok(())
     }
 }
 

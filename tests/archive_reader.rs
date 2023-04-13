@@ -35,7 +35,7 @@ fn test_bfs2004a() -> Result<(), Box<dyn Error>> {
             "non_existing_file".to_string()
         ]),
         vec![(
-            "data/language/version.ini",
+            "data/language/version.ini".to_string(),
             ArchivedFileInfo {
                 offset: 0xFDC,
                 compression_method: CompressionMethod::Zlib,
