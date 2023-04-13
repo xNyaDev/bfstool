@@ -29,5 +29,23 @@ fn test_bfs2004a() -> Result<(), Box<dyn Error>> {
     );
     assert_eq!(archive.file_info("non_existing_file"), vec![]);
 
+    assert_eq!(
+        archive.multiple_file_info(vec![
+            "data/language/version.ini".to_string(),
+            "non_existing_file".to_string()
+        ]),
+        vec![(
+            "data/language/version.ini",
+            ArchivedFileInfo {
+                offset: 0xFDC,
+                compression_method: CompressionMethod::Zlib,
+                size: 0x44F,
+                compressed_size: 0x1D7,
+                copies: 0,
+                hash: Some(0xF6260C6E),
+            }
+        )]
+    );
+
     Ok(())
 }

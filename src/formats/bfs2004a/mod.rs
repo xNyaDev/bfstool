@@ -80,6 +80,20 @@ impl<R: BufRead + Seek> ArchiveReader<R> for ReadArchive<R> {
             .collect()
     }
 
+    fn multiple_file_info(&self, file_names: Vec<String>) -> Vec<(&str, ArchivedFileInfo)> {
+        self.raw_archive
+            .file_headers
+            .iter()
+            .filter_map(|file_header| {
+                if file_names.contains(&file_header.file_name) {
+                    Some((file_header.file_name.as_ref(), ArchivedFileInfo::from(file_header)))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
     fn reader(&mut self) -> &mut R {
         &mut self.reader
     }

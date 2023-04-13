@@ -21,6 +21,10 @@ pub trait ArchiveReader<R: BufRead + Seek> {
     ///
     /// If there are multiple files with the same name, all of them are returned
     fn file_info(&self, file_name: &str) -> Vec<ArchivedFileInfo>;
+    /// Returns ArchivedFileInfo for the given file names as a tuple of (name, info), if present
+    ///
+    /// If there are multiple files with the same name, all of them are returned
+    fn multiple_file_info(&self, file_names: Vec<String>) -> Vec<(&str, ArchivedFileInfo)>;
     /// Returns a mutable reference to the internal reader
     fn reader(&mut self) -> &mut R;
     /// Extracts listed files from the archive to the given folder
