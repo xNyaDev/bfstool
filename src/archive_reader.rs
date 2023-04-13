@@ -12,7 +12,7 @@ use crate::formats::*;
 use crate::ArchivedFileInfo;
 
 /// An archive type must implement ArchiveReader to be readable
-pub trait ArchiveReader {
+pub trait ArchiveReader<R: BufRead + Seek> {
     /// Returns file count of the archive
     fn file_count(&self) -> u64;
     /// Returns file names of all files in the archive
@@ -21,6 +21,8 @@ pub trait ArchiveReader {
     ///
     /// If there are multiple files with the same name, all of them are returned
     fn file_info(&self, file_name: &str) -> Vec<ArchivedFileInfo>;
+    /// Returns a mutable reference to the internal reader
+    fn reader(&mut self) -> &mut R;
     /// Extracts listed files from the archive to the given folder
     fn extract_files<'a>(
         &mut self,
@@ -39,7 +41,7 @@ pub fn read_archive_file(
     archive: &PathBuf,
     archive_format: Format,
     force: bool,
-) -> Result<Box<dyn ArchiveReader>, ReadError> {
+) -> Result<Box<dyn ArchiveReader<BufReader<File>>>, ReadError> {
     let file = File::open(archive)?;
     let file_reader = BufReader::new(file);
     read_archive(file_reader, archive_format, force)
@@ -52,7 +54,7 @@ pub fn read_archive<R: BufRead + Seek + 'static>(
     mut archive: R,
     archive_format: Format,
     force: bool,
-) -> Result<Box<dyn ArchiveReader>, ReadError> {
+) -> Result<Box<dyn ArchiveReader<R>>, ReadError> {
     match archive_format {
         Format::Bfs2004a => {
             if !force {

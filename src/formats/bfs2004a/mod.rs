@@ -53,7 +53,7 @@ pub struct RawArchive {
     pub file_headers: Vec<FileHeader>,
 }
 
-impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
+impl<R: BufRead + Seek> ArchiveReader<R> for ReadArchive<R> {
     fn file_count(&self) -> u64 {
         self.raw_archive.archive_header.file_count as u64
     }
@@ -78,6 +78,10 @@ impl<R: BufRead + Seek> ArchiveReader for ReadArchive<R> {
                 }
             })
             .collect()
+    }
+
+    fn reader(&mut self) -> &mut R {
+        &mut self.reader
     }
 
     fn extract_files<'a>(
