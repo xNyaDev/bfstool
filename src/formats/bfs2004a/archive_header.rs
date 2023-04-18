@@ -1,6 +1,6 @@
 use binrw::BinRead;
 
-/// Archive Header for archive of format Bfs2004a
+/// Archive Header for archive of formats: Bfs2004a, Bfs2004b
 #[derive(Debug, Default, Eq, PartialEq, BinRead)]
 #[brw(little)]
 pub struct ArchiveHeader {
@@ -10,7 +10,7 @@ pub struct ArchiveHeader {
     pub magic: u32,
     /// File version
     ///
-    /// `05 05 04 20`, v2004.05.05a
+    /// `05 05 04 20`, v2004.05.05a and v2004.05.05b
     pub version: u32,
     /// Offset at which the header section ends
     pub header_end: u32,
@@ -18,6 +18,7 @@ pub struct ArchiveHeader {
     pub file_count: u32,
 }
 
+/// Bfs2004a-specific tests
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
