@@ -33,6 +33,9 @@ pub struct ReadArchive<R: BufRead + Seek> {
     pub raw_archive: RawArchive,
 }
 
+/// Contains offsets for every file header
+pub type FileHeaderOffsetTable = Vec<u32>;
+
 /// Raw archive contents that can be read directly from a .bfs file or written to one
 #[derive(Debug, Default, Eq, PartialEq, BinRead)]
 #[brw(little)]
@@ -41,7 +44,7 @@ pub struct RawArchive {
     pub archive_header: ArchiveHeader,
     /// Offsets for every file header
     #[br(count = archive_header.file_count)]
-    pub file_header_offsets: Vec<u32>,
+    pub file_header_offsets: FileHeaderOffsetTable,
     /// Stores information about the hash size and how many files with specific hash are there
     pub hash_table: HashTable,
     /// All [FileHeader]s
