@@ -1,0 +1,6 @@
+Listing archive: test_data/bfs2004a/europe.bin
+Physical size: 4.0 KiB
+File count: 1
+| Method |    Size | Compressed | Copies |  Offset  | File Name                 |
+|--------|---------|------------|--------|----------|---------------------------|
+|   zlib | 1.1 KiB |      471 B |      0 | 00000fdc | data/language/version.ini |

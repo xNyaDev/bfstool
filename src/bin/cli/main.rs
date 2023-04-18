@@ -30,7 +30,7 @@ enum Commands {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli: Cli = Cli::parse();
     match cli.command {
-        Commands::List(arguments) => list::run(arguments),
+        Commands::List(arguments) => list::run(arguments, &mut std::io::stdout()),
         Commands::Tree(arguments) => tree::run(arguments),
         Commands::Extract(arguments) => extract::run(arguments),
     }
