@@ -69,7 +69,6 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
         "{}",
         Table::new(table_contents)
             .with(Style::markdown())
-            .with(Style::markdown())
             .with(Modify::new(Segment::all()).with(Alignment::right()))
             .with(Modify::new(Columns::single(4)).with(Alignment::center()))
             .with(Modify::new(Columns::last()).with(Alignment::left()))
