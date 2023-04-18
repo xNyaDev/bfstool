@@ -9,7 +9,7 @@ fn main() {
             )
             .set("OriginalFilename", "bfstool-cli.exe")
             .set("ProductName", "bfstool-cli")
-            .compile(Some("bfstool-cli"))
+            .compile_for("bfstool-cli")
             .unwrap();
     }
 }
