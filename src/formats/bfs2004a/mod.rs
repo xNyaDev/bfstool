@@ -130,20 +130,21 @@ pub fn check_archive<R: BufRead + Seek>(archive: &mut R) -> Result<(), ReadError
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use std::fs::File;
+    use std::io;
+    use std::io::BufReader;
 
     use pretty_assertions::assert_eq;
 
     use super::*;
 
     #[test]
-    fn parsing_test() {
+    fn parsing_test() -> io::Result<()> {
         // Test data comes from europe.bfs, the entire header section
-        let test_data = include_bytes!("../../../test_data/bfs2004a/europe.bin");
+        let test_file = File::open("test_data/bfs2004a/europe.bin")?;
+        let mut test_reader = BufReader::new(test_file);
 
-        let mut test_data_cursor = Cursor::new(test_data);
-
-        let result = RawArchive::read(&mut test_data_cursor);
+        let result = RawArchive::read(&mut test_reader);
 
         let mut expected_result_hash_table_entries = Vec::new();
 
@@ -182,12 +183,13 @@ mod tests {
         );
 
         // Test data comes from common1.bfs, the entire header section
-        let test_data = include_bytes!("../../../test_data/bfs2004a/common1.bin");
+        let test_file = File::open("test_data/bfs2004a/common1.bin")?;
+        let mut test_reader = BufReader::new(test_file);
 
-        let mut test_data_cursor = Cursor::new(test_data);
-
-        let result = RawArchive::read(&mut test_data_cursor);
+        let result = RawArchive::read(&mut test_reader);
 
         assert!(result.is_ok());
+
+        Ok(())
     }
 }

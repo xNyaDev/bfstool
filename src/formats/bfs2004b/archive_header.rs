@@ -3,7 +3,9 @@ pub use super::super::bfs2004a::ArchiveHeader;
 /// Bfs2004b-specific tests
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use std::fs::File;
+    use std::io;
+    use std::io::BufReader;
 
     use binrw::BinRead;
     use pretty_assertions::assert_eq;
@@ -11,14 +13,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parsing_test() {
+    fn parsing_test() -> io::Result<()> {
         // Test data comes from fo2a.bfs, first 10h bytes
-        let test_data = include_bytes!("../../../test_data/bfs2004b/fo2a.bin");
-        let test_data = &test_data[..=0x10];
+        let test_file = File::open("test_data/bfs2004b/fo2a.bin")?;
+        let mut test_reader = BufReader::new(test_file);
 
-        let mut test_data_cursor = Cursor::new(test_data);
-
-        let result = ArchiveHeader::read(&mut test_data_cursor);
+        let result = ArchiveHeader::read(&mut test_reader);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -30,5 +30,7 @@ mod tests {
                 file_count: 6349,
             }
         );
+
+        Ok(())
     }
 }

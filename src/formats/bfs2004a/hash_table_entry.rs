@@ -12,21 +12,22 @@ pub struct HashTableEntry {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use std::fs::File;
+    use std::io;
+    use std::io::{BufReader, Seek, SeekFrom};
 
     use pretty_assertions::assert_eq;
 
     use super::*;
 
     #[test]
-    fn parsing_test() {
+    fn parsing_test() -> io::Result<()> {
         // Test data comes from europe.bfs, 464h-467h
-        let test_data = include_bytes!("../../../test_data/bfs2004a/europe.bin");
-        let test_data = &test_data[0x464..=0x467];
+        let test_file = File::open("test_data/bfs2004a/europe.bin")?;
+        let mut test_reader = BufReader::new(test_file);
+        test_reader.seek(SeekFrom::Start(0x464))?;
 
-        let mut test_data_cursor = Cursor::new(test_data);
-
-        let result = HashTableEntry::read(&mut test_data_cursor);
+        let result = HashTableEntry::read(&mut test_reader);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -36,5 +37,7 @@ mod tests {
                 file_count: 1,
             }
         );
+
+        Ok(())
     }
 }

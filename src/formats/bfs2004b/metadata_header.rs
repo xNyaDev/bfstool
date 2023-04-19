@@ -20,21 +20,22 @@ pub struct MetadataHeader {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use std::fs::File;
+    use std::io;
+    use std::io::{BufReader, Seek, SeekFrom};
 
     use pretty_assertions::assert_eq;
 
     use super::*;
 
     #[test]
-    fn parsing_test() {
+    fn parsing_test() -> io::Result<()> {
         // Test data comes from fo2a.bfs, 1F3Ch-1F4Fh
-        let test_data = include_bytes!("../../../test_data/bfs2004b/fo2a.bin");
-        let test_data = &test_data[0x1F3C..=0x1F4F];
+        let test_file = File::open("test_data/bfs2004b/fo2a.bin")?;
+        let mut test_reader = BufReader::new(test_file);
+        test_reader.seek(SeekFrom::Start(0x1F3C))?;
 
-        let mut test_data_cursor = Cursor::new(test_data);
-
-        let result = MetadataHeader::read(&mut test_data_cursor);
+        let result = MetadataHeader::read(&mut test_reader);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -47,5 +48,7 @@ mod tests {
                 huffman_data_offset: 0x5888,
             }
         );
+
+        Ok(())
     }
 }

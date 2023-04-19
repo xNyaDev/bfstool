@@ -68,21 +68,22 @@ impl From<&FileHeader> for ArchivedFileInfo {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use std::fs::File;
+    use std::io;
+    use std::io::{BufReader, Cursor, Seek, SeekFrom};
 
     use pretty_assertions::assert_eq;
 
     use super::*;
 
     #[test]
-    fn parsing_test() {
+    fn parsing_test() -> io::Result<()> {
         // Test data comes from europe.bfs, FACh-FDAh
-        let test_data = include_bytes!("../../../test_data/bfs2004a/europe.bin");
-        let test_data = &test_data[0xFAC..=0xFDA];
+        let test_file = File::open("test_data/bfs2004a/europe.bin")?;
+        let mut test_reader = BufReader::new(test_file);
+        test_reader.seek(SeekFrom::Start(0xFAC))?;
 
-        let mut test_data_cursor = Cursor::new(test_data);
-
-        let result = FileHeader::read(&mut test_data_cursor);
+        let result = FileHeader::read(&mut test_reader);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -101,12 +102,11 @@ mod tests {
         );
 
         // Test data comes from common1.bfs, 54E7h-551Bh
-        let test_data = include_bytes!("../../../test_data/bfs2004a/common1.bin");
-        let test_data = &test_data[0x54E7..=0x551B];
+        let test_file = File::open("test_data/bfs2004a/common1.bin")?;
+        let mut test_reader = BufReader::new(test_file);
+        test_reader.seek(SeekFrom::Start(0x54E7))?;
 
-        let mut test_data_cursor = Cursor::new(test_data);
-
-        let result = FileHeader::read(&mut test_data_cursor);
+        let result = FileHeader::read(&mut test_reader);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -123,6 +123,8 @@ mod tests {
                 file_copies_offsets: vec![],
             }
         );
+
+        Ok(())
     }
 
     #[test]
