@@ -1,0 +1,9 @@
+Listing archive: test_data/bfs2004a/europe.bin
+Physical size: 4.0 KiB
+File count: 1
+
+europe.bin [1.1 KiB]
+└── data [1.1 KiB]
+    └── language [1.1 KiB]
+        └── version.ini [1.1 KiB]
+

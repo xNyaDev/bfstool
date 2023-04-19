@@ -20,7 +20,7 @@ pub struct Arguments {
     force: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct TreeDirectory {
     name: String,
     size: u64,
@@ -28,7 +28,7 @@ struct TreeDirectory {
     file_children: Vec<TreeFile>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct TreeFile {
     name: String,
     size: u64,
@@ -104,7 +104,7 @@ fn build_printable_tree(directory: &TreeDirectory) -> Tree<String> {
     result
 }
 
-pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
+pub fn run(arguments: Arguments, mut writer: impl std::io::Write) -> Result<(), Box<dyn Error>> {
     let archive = read_archive_file(&arguments.archive, Bfs2004a, arguments.force)?;
 
     let mut tree = archive
@@ -131,14 +131,146 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
 
     calculate_directory_size(&mut tree);
 
-    println!("Listing archive: {}", arguments.archive.to_string_lossy());
-    println!(
+    writeln!(
+        writer,
+        "Listing archive: {}",
+        arguments.archive.to_string_lossy()
+    )?;
+    writeln!(
+        writer,
         "Physical size: {}",
         display_size(&fs::metadata(&arguments.archive).unwrap().len())
-    );
-    println!("File count: {}", archive.file_count());
-    println!();
-    println!("{}", build_printable_tree(&tree));
+    )?;
+    writeln!(writer, "File count: {}", archive.file_count())?;
+    writeln!(writer,)?;
+    writeln!(writer, "{}", build_printable_tree(&tree))?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs::File;
+    use std::io::Read;
+
+    use pretty_assertions::assert_eq;
+
+    use super::*;
+
+    #[test]
+    fn listing_test() -> Result<(), Box<dyn Error>> {
+        let mut result = Vec::new();
+        let arguments = Arguments {
+            archive: PathBuf::from("test_data/bfs2004a/europe.bin"),
+            force: false,
+        };
+        run(arguments, &mut result)?;
+
+        let mut expected_result_file = File::open("test_data/cli/tree.txt")?;
+        let mut expected_result = Vec::new();
+        expected_result_file.read_to_end(&mut expected_result)?;
+
+        // Compare results as strings for pretty diff when mismatching
+        //
+        // Ignore mismatching line breaks when comparing (assume \r\n and \n are equal) by
+        // removing all occurrences of \r
+        assert_eq!(
+            String::from_utf8_lossy(&result)
+                .to_string()
+                .replace('\r', ""),
+            String::from_utf8_lossy(&expected_result)
+                .to_string()
+                .replace('\r', "")
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn tree_creation_test() {
+        let mut tree = TreeDirectory {
+            name: "root".to_string(),
+            size: 0,
+            directory_children: vec![],
+            file_children: vec![],
+        };
+
+        let path = "dir1/file1.txt".to_string();
+        let mut path = path.split('/').collect::<VecDeque<&str>>();
+
+        insert_tree_file(&mut tree, &mut path, 100);
+
+        assert_eq!(
+            tree,
+            TreeDirectory {
+                name: "root".to_string(),
+                size: 0,
+                directory_children: vec![TreeDirectory {
+                    name: "dir1".to_string(),
+                    size: 0,
+                    directory_children: vec![],
+                    file_children: vec![TreeFile {
+                        name: "file1.txt".to_string(),
+                        size: 100,
+                    }],
+                }],
+                file_children: vec![],
+            }
+        );
+
+        let path = "dir1/file2.txt".to_string();
+        let mut path = path.split('/').collect::<VecDeque<&str>>();
+
+        insert_tree_file(&mut tree, &mut path, 200);
+
+        assert_eq!(
+            tree,
+            TreeDirectory {
+                name: "root".to_string(),
+                size: 0,
+                directory_children: vec![TreeDirectory {
+                    name: "dir1".to_string(),
+                    size: 0,
+                    directory_children: vec![],
+                    file_children: vec![
+                        TreeFile {
+                            name: "file1.txt".to_string(),
+                            size: 100,
+                        },
+                        TreeFile {
+                            name: "file2.txt".to_string(),
+                            size: 200,
+                        }
+                    ],
+                }],
+                file_children: vec![],
+            }
+        );
+
+        calculate_directory_size(&mut tree);
+
+        assert_eq!(
+            tree,
+            TreeDirectory {
+                name: "root".to_string(),
+                size: 300,
+                directory_children: vec![TreeDirectory {
+                    name: "dir1".to_string(),
+                    size: 300,
+                    directory_children: vec![],
+                    file_children: vec![
+                        TreeFile {
+                            name: "file1.txt".to_string(),
+                            size: 100,
+                        },
+                        TreeFile {
+                            name: "file2.txt".to_string(),
+                            size: 200,
+                        }
+                    ],
+                }],
+                file_children: vec![],
+            }
+        );
+    }
 }

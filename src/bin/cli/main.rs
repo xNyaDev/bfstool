@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cli: Cli = Cli::parse();
     match cli.command {
         Commands::List(arguments) => list::run(arguments, &mut std::io::stdout()),
-        Commands::Tree(arguments) => tree::run(arguments),
+        Commands::Tree(arguments) => tree::run(arguments, &mut std::io::stdout()),
         Commands::Extract(arguments) => extract::run(arguments),
     }
 }
