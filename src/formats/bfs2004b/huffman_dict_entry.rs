@@ -17,17 +17,16 @@ pub enum HuffmanDictNodeType {
 #[derive(Debug, Eq, PartialEq, BinRead)]
 #[brw(little)]
 pub struct HuffmanDictEntry {
-    /// Dict node type
-    ///
-    /// - `0x80` - Leaf node
-    /// - `0x00` - Branch node
-    pub node_type: HuffmanDictNodeType,
-
     /// Node value, depending on node type
     ///
     /// - Leaf node: Value located at the key
     /// - Branch node: Index of the right child node in the dict
     pub value: u8,
+    /// Dict node type
+    ///
+    /// - `0x80` - Leaf node
+    /// - `0x00` - Branch node
+    pub node_type: HuffmanDictNodeType,
 }
 
 #[cfg(test)]
@@ -41,7 +40,7 @@ mod tests {
     #[test]
     fn parsing_test() {
         // Test data is made up to test both node types
-        let test_data = vec![0x00, 0x01];
+        let test_data = vec![0x01, 0x00];
 
         let mut test_data_cursor = Cursor::new(test_data);
 
@@ -56,7 +55,7 @@ mod tests {
             }
         );
 
-        let test_data = vec![0x80, 0x01];
+        let test_data = vec![0x01, 0x80];
 
         let mut test_data_cursor = Cursor::new(test_data);
 
