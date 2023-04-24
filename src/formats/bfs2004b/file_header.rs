@@ -61,7 +61,7 @@ impl From<&FileHeader> for ArchivedFileInfo {
 mod tests {
     use std::fs::File;
     use std::io;
-    use std::io::{BufReader, Cursor, Seek, SeekFrom};
+    use std::io::{BufReader, Seek, SeekFrom};
 
     use pretty_assertions::assert_eq;
 
@@ -69,7 +69,6 @@ mod tests {
 
     #[test]
     fn parsing_test() -> io::Result<()> {
-        // Test data comes from fo2a.bfs, 11F50h-11F67h
         let test_file = File::open("test_data/bfs2004b/fo2a.bin")?;
         let mut test_reader = BufReader::new(test_file);
         test_reader.seek(SeekFrom::Start(0x11F50))?;
@@ -96,16 +95,12 @@ mod tests {
     }
 
     #[test]
-    fn parsing_test_file_copies() {
-        // Test data comes from flatout2.bfs - Xbox, Redump (USA, Europe) (En,Fr,De,Es,It), 1B9A0h-1B9BFh
-        let test_data = vec![
-            0x01, 0x02, 0x00, 0x00, 0x2D, 0x90, 0x3D, 0x00, 0x50, 0x2B, 0x00, 0x00, 0x0C, 0x17,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1C, 0x03, 0xF9, 0x0A, 0xD2, 0x4D, 0x8A, 0x20,
-            0x9C, 0x2F, 0xB2, 0x20,
-        ];
-        let mut test_data_cursor = Cursor::new(test_data);
+    fn parsing_test_file_copies() -> io::Result<()> {
+        let test_file = File::open("test_data/bfs2004b/xbox_flatout2.bin")?;
+        let mut test_reader = BufReader::new(test_file);
+        test_reader.seek(SeekFrom::Start(0x1B9A0))?;
 
-        let result = FileHeader::read(&mut test_data_cursor);
+        let result = FileHeader::read(&mut test_reader);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -122,5 +117,7 @@ mod tests {
                 file_copies_offsets: vec![0x208A4DD2, 0x20B22F9C],
             }
         );
+
+        Ok(())
     }
 }

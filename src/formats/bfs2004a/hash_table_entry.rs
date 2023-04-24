@@ -22,7 +22,6 @@ mod tests {
 
     #[test]
     fn parsing_test() -> io::Result<()> {
-        // Test data comes from europe.bfs, 464h-467h
         let test_file = File::open("test_data/bfs2004a/europe.bin")?;
         let mut test_reader = BufReader::new(test_file);
         test_reader.seek(SeekFrom::Start(0x464))?;

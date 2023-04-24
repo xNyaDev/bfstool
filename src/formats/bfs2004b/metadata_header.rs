@@ -30,7 +30,6 @@ mod tests {
 
     #[test]
     fn parsing_test() -> io::Result<()> {
-        // Test data comes from fo2a.bfs, 1F3Ch-1F4Fh
         let test_file = File::open("test_data/bfs2004b/fo2a.bin")?;
         let mut test_reader = BufReader::new(test_file);
         test_reader.seek(SeekFrom::Start(0x1F3C))?;

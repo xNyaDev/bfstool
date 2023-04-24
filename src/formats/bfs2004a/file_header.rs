@@ -78,7 +78,6 @@ mod tests {
 
     #[test]
     fn parsing_test() -> io::Result<()> {
-        // Test data comes from europe.bfs, FACh-FDAh
         let test_file = File::open("test_data/bfs2004a/europe.bin")?;
         let mut test_reader = BufReader::new(test_file);
         test_reader.seek(SeekFrom::Start(0xFAC))?;
@@ -128,17 +127,12 @@ mod tests {
     }
 
     #[test]
-    fn parsing_test_file_copies() {
-        // Test data comes from flatout.bfs - Xbox, Redump (Europe) (En,Fr,Es,It), A511h-A545h
-        let test_data = vec![
-            0x01, 0x01, 0x00, 0x00, 0x02, 0xE6, 0x9F, 0x00, 0x38, 0xAB, 0x00, 0x00, 0xD1, 0x92,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1B, 0x00, 0x64, 0x61, 0x74, 0x61, 0x2F, 0x63,
-            0x61, 0x72, 0x73, 0x2F, 0x73, 0x68, 0x61, 0x72, 0x65, 0x64, 0x2F, 0x63, 0x6F, 0x6D,
-            0x6D, 0x6F, 0x6E, 0x2E, 0x64, 0x64, 0x73, 0xE4, 0xD3, 0x4D, 0x0D,
-        ];
-        let mut test_data_cursor = Cursor::new(test_data);
+    fn parsing_test_file_copies() -> io::Result<()> {
+        let test_file = File::open("test_data/bfs2004a/xbox_flatout.bin")?;
+        let mut test_reader = BufReader::new(test_file);
+        test_reader.seek(SeekFrom::Start(0xA511))?;
 
-        let result = FileHeader::read(&mut test_data_cursor);
+        let result = FileHeader::read(&mut test_reader);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -155,6 +149,8 @@ mod tests {
                 file_copies_offsets: vec![0xD4DD3E4],
             }
         );
+
+        Ok(())
     }
     /// Test for unofficial archives with file name length 0
     #[test]
