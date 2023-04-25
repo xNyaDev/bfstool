@@ -7,6 +7,7 @@ pub use file_header::FileHeader;
 pub use hash_table::HashTable;
 pub use hash_table_entry::HashTableEntry;
 pub use huffman_dict_entry::{HuffmanDictEntry, HuffmanDictNodeType};
+pub use huffman_helpers::decode_all_names;
 pub use metadata_header::MetadataHeader;
 pub use raw_archive::RawArchive;
 
