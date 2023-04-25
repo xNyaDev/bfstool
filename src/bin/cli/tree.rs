@@ -7,9 +7,10 @@ use clap::Parser;
 use termtree::Tree;
 
 use bfstool::read_archive_file;
-use bfstool::Format::Bfs2004a;
 
 use crate::display::display_size;
+
+use super::Format;
 
 #[derive(Parser)]
 pub struct Arguments {
@@ -18,6 +19,9 @@ pub struct Arguments {
     /// Ignore invalid magic/version/hash size
     #[clap(long)]
     force: bool,
+    /// BFS archive format
+    #[clap(short, long)]
+    format: Format,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -105,7 +109,7 @@ fn build_printable_tree(directory: &TreeDirectory) -> Tree<String> {
 }
 
 pub fn run(arguments: Arguments, mut writer: impl std::io::Write) -> Result<(), Box<dyn Error>> {
-    let archive = read_archive_file(&arguments.archive, Bfs2004a, arguments.force)?;
+    let archive = read_archive_file(&arguments.archive, arguments.format.into(), arguments.force)?;
 
     let mut tree = archive
         .multiple_file_info(archive.file_names())
@@ -142,7 +146,7 @@ pub fn run(arguments: Arguments, mut writer: impl std::io::Write) -> Result<(), 
         display_size(&fs::metadata(&arguments.archive).unwrap().len())
     )?;
     writeln!(writer, "File count: {}", archive.file_count())?;
-    writeln!(writer,)?;
+    writeln!(writer)?;
     writeln!(writer, "{}", build_printable_tree(&tree))?;
 
     Ok(())
@@ -163,6 +167,7 @@ mod tests {
         let arguments = Arguments {
             archive: PathBuf::from("test_data/bfs2004a/europe.bin"),
             force: false,
+            format: Format::Bfs2004a,
         };
         run(arguments, &mut result)?;
 

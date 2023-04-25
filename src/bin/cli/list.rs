@@ -9,9 +9,10 @@ use tabled::{Table, Tabled};
 
 use bfstool::read_archive_file;
 use bfstool::CompressionMethod;
-use bfstool::Format::Bfs2004a;
 
 use crate::display::{display_offset, display_size};
+
+use super::Format;
 
 #[derive(Parser)]
 pub struct Arguments {
@@ -20,6 +21,9 @@ pub struct Arguments {
     /// Ignore invalid magic/version/hash size
     #[clap(long)]
     force: bool,
+    /// BFS archive format
+    #[clap(short, long)]
+    format: Format,
 }
 
 #[derive(Tabled, Eq, PartialEq)]
@@ -44,7 +48,7 @@ pub struct TableFileInfo {
 }
 
 pub fn run(arguments: Arguments, mut writer: impl std::io::Write) -> Result<(), Box<dyn Error>> {
-    let archive = read_archive_file(&arguments.archive, Bfs2004a, arguments.force)?;
+    let archive = read_archive_file(&arguments.archive, arguments.format.into(), arguments.force)?;
 
     let table_contents = archive
         .multiple_file_info(archive.file_names())
@@ -97,6 +101,7 @@ mod tests {
         let arguments = Arguments {
             archive: PathBuf::from("test_data/bfs2004a/europe.bin"),
             force: false,
+            format: Format::Bfs2004a,
         };
         run(arguments, &mut result)?;
 

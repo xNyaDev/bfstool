@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 mod display;
 mod extract;
@@ -25,6 +25,21 @@ enum Commands {
     /// Extract all files from the archive
     #[clap(visible_alias = "e", visible_alias = "x")]
     Extract(extract::Arguments),
+}
+
+#[derive(ValueEnum, Clone, Eq, PartialEq)]
+enum Format {
+    Bfs2004a,
+    Bfs2004b,
+}
+
+impl From<Format> for bfstool::Format {
+    fn from(value: Format) -> Self {
+        match value {
+            Format::Bfs2004a => bfstool::Format::Bfs2004a,
+            Format::Bfs2004b => bfstool::Format::Bfs2004b,
+        }
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

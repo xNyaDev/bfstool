@@ -4,10 +4,11 @@ use std::path::PathBuf;
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 
-use bfstool::Format::Bfs2004a;
 use bfstool::{read_archive_file, CompressionMethod};
 
 use crate::display::display_size;
+
+use super::Format;
 
 #[derive(Parser)]
 pub struct Arguments {
@@ -21,10 +22,14 @@ pub struct Arguments {
     /// Print names of extracted files
     #[clap(short, long)]
     verbose: bool,
+    /// BFS archive format
+    #[clap(short, long)]
+    format: Format,
 }
 
 pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
-    let mut archive = read_archive_file(&arguments.archive, Bfs2004a, arguments.force)?;
+    let mut archive =
+        read_archive_file(&arguments.archive, arguments.format.into(), arguments.force)?;
 
     let file_names = archive.file_names();
 
