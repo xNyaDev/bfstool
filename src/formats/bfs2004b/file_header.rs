@@ -12,6 +12,9 @@ pub struct FileHeader {
     /// Official flags:
     /// - `0x01` - compressed
     /// - `0x04` - Has crc32
+    ///
+    /// Unofficial flags:
+    /// - `0x08` - compression method is Zstandard (zstd) - [Sewer56's FlatOut 2 Mod Loader](https://github.com/Sewer56/FlatOut2.Utils.ModLoader/blob/main/FlatOut2.Utils.ModLoader/Patches/Compression/SupportCustomCompressionPatch.cs)
     pub flags: u8,
     /// How many additional copies of this file are archived
     pub file_copies: u8,
@@ -41,7 +44,11 @@ impl From<&FileHeader> for ArchivedFileInfo {
         Self {
             offset: file_header.data_offset as u64,
             compression_method: if file_header.flags & 0x01 == 0x01 {
-                CompressionMethod::Zlib
+                if file_header.flags & 0x08 == 0x08 {
+                    CompressionMethod::Zstd
+                } else {
+                    CompressionMethod::Zlib
+                }
             } else {
                 CompressionMethod::None
             },

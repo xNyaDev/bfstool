@@ -17,6 +17,10 @@ pub fn extract_data<R: BufRead, W: Write>(
             let mut decoder = ZlibDecoder::new(data);
             io::copy(&mut decoder, writer)
         }
+        CompressionMethod::Zstd => {
+            let mut decoder = zstd::Decoder::new(data)?;
+            io::copy(&mut decoder, writer)
+        }
     }
 }
 
@@ -28,6 +32,8 @@ pub enum CompressionMethod {
     None,
     /// zlib compression
     Zlib,
+    /// Zstandard compression
+    Zstd,
 }
 
 impl Display for CompressionMethod {
@@ -36,12 +42,9 @@ impl Display for CompressionMethod {
             f,
             "{}",
             match self {
-                CompressionMethod::None => {
-                    "none"
-                }
-                CompressionMethod::Zlib => {
-                    "zlib"
-                }
+                CompressionMethod::None => "none",
+                CompressionMethod::Zlib => "zlib",
+                CompressionMethod::Zstd => "zstd",
             }
         )
     }
