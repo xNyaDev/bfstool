@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use bitvec::prelude::*;
+
 use crate::formats::bfs2004b::{HuffmanDictNodeType, SerializedHuffmanDict};
 
 /// Contains the deserialized Huffman dictionary
@@ -30,11 +32,28 @@ pub fn deserialize_huffman_dict(serialized: SerializedHuffmanDict) -> HuffmanDic
     result
 }
 
+/// Decode some Huffman data with the given length
+pub fn decode_huffman_data(encoded_data: Vec<u8>, dict: &HuffmanDict, data_length: u16) -> Vec<u8> {
+    let mut pattern = 1;
+    let bits = encoded_data.view_bits::<Lsb0>();
+
+    bits.iter()
+        .filter_map(|bit| {
+            pattern = (pattern << 1) | *bit as u32;
+            dict.get(&pattern).map(|&decoded| {
+                pattern = 1;
+                decoded
+            })
+        })
+        .take(data_length as usize)
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use std::fs::File;
     use std::io;
-    use std::io::BufReader;
+    use std::io::{BufReader, Read};
 
     use binrw::BinRead;
     use pretty_assertions::assert_eq;
@@ -97,6 +116,29 @@ mod tests {
                 (0x35CD, b' '),
             ])
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn decode_huffman_data_test() -> io::Result<()> {
+        let test_file = File::open("test_data/bfs2004b/fo2a.bin")?;
+        let mut test_reader = BufReader::new(test_file);
+
+        let archive = RawArchive::read(&mut test_reader).unwrap();
+        let dict = deserialize_huffman_dict(archive.serialized_huffman_dict);
+
+        let mut data = Vec::new();
+
+        let mut data_source = archive
+            .encoded_huffman_data
+            .take((archive.file_name_offset_table[1] - archive.file_name_offset_table[0]) as u64);
+
+        data_source.read_to_end(&mut data)?;
+
+        let result = decode_huffman_data(data, &dict, archive.file_name_length_table[0]);
+
+        assert_eq!(result, b"01.ogg".to_vec());
 
         Ok(())
     }
