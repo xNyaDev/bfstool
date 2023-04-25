@@ -35,6 +35,19 @@
 //!   - [ ] `bfs1` v2011.12.20 (Ridge Racer Unbounded)
 //!   - [ ] `bbfs` v2013.03.14 (Ridge Racer Driftopia, Next Car Game Free Technology Demo, Next Car
 //!     Game Technology Sneak Peek 2.0)
+//!
+//! # Unofficial files behaviour
+//!
+//! ## Bfs2004a
+//!
+//! - [FOV3 Mod](https://www.moddb.com/mods/fov3-mod) has some files with file names of length 0.
+//! Additional code is required to handle those files. Currently, extracting an archive with those
+//! files will likely fail, but the files can be listed just fine.
+//!
+//! ## Bfs2004b
+//! - [Sewer56's FlatOut 2 Mod Loader](https://github.com/Sewer56/FlatOut2.Utils.ModLoader) adds
+//! support for files compressed with Zstandard (zstd). The files get handled automatically and no
+//! code tweaks are required.
 
 pub use archive_reader::{read_archive, read_archive_file};
 pub use archived_file_info::ArchivedFileInfo;
