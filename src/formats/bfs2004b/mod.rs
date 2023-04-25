@@ -18,6 +18,7 @@ mod file_header;
 mod hash_table;
 mod hash_table_entry;
 mod huffman_dict_entry;
+mod huffman_helpers;
 mod metadata_header;
 mod metadata_helpers;
 mod raw_archive;
@@ -37,11 +38,11 @@ pub type FileNameOffsetTable = Vec<u32>;
 /// Contains lengths of specific file names in the Huffman data
 pub type FileNameLengthTable = Vec<u16>;
 
-/// Contains the encoded Huffman dictionary
-pub type HuffmanDict = Vec<HuffmanDictEntry>;
+/// Contains the serialized Huffman dictionary
+pub type SerializedHuffmanDict = Vec<HuffmanDictEntry>;
 
 /// Contains the encoded Huffman data
-pub type HuffmanData = Vec<u8>;
+pub type EncodedHuffmanData = Vec<u8>;
 
 /// Checks the magic, version and hash size of the archive to ensure it's a valid Bfs2004b archive
 pub fn check_archive<R: BufRead + Seek>(archive: &mut R) -> Result<(), ReadError> {

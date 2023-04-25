@@ -4,8 +4,8 @@ use binrw::BinRead;
 
 use crate::formats::bfs2004a::ArchiveHeader;
 use crate::formats::bfs2004b::{
-    FileHeader, FileNameLengthTable, FileNameOffsetTable, HashTable, HuffmanData, HuffmanDict,
-    MetadataHeader,
+    EncodedHuffmanData, SerializedHuffmanDict, FileHeader, FileNameLengthTable, FileNameOffsetTable,
+    HashTable, MetadataHeader,
 };
 
 use super::metadata_helpers;
@@ -52,7 +52,7 @@ pub struct RawArchive {
         )
     )]
     pub file_name_length_table: FileNameLengthTable,
-    /// Encoded Huffman dictionary
+    /// Serialized Huffman dictionary
     #[br(
         seek_before(
             SeekFrom::Start(
@@ -67,7 +67,7 @@ pub struct RawArchive {
             metadata_helpers::calculate_metadata_start(&hash_table)
         )
     )]
-    pub huffman_dict: HuffmanDict,
+    pub serialized_huffman_dict: SerializedHuffmanDict,
     /// Encoded Huffman data
     #[br(
         seek_before(
@@ -83,7 +83,7 @@ pub struct RawArchive {
             metadata_helpers::calculate_metadata_start(&hash_table)
         )
     )]
-    pub huffman_data: HuffmanData,
+    pub encoded_huffman_data: EncodedHuffmanData,
     /// All [FileHeader]s
     #[br(
         seek_before(
@@ -161,25 +161,25 @@ mod tests {
         assert_eq!(result.file_name_length_table[0], 6);
         assert_eq!(result.file_name_length_table[3746], 13);
 
-        assert_eq!(result.huffman_dict.len(), 81);
+        assert_eq!(result.serialized_huffman_dict.len(), 81);
         assert_eq!(
-            result.huffman_dict[0],
+            result.serialized_huffman_dict[0],
             HuffmanDictEntry {
                 node_type: HuffmanDictNodeType::Branch,
                 value: 0x24
             }
         );
         assert_eq!(
-            result.huffman_dict[80],
+            result.serialized_huffman_dict[80],
             HuffmanDictEntry {
                 node_type: HuffmanDictNodeType::Leaf,
                 value: 0x69
             }
         );
 
-        assert_eq!(result.huffman_data.len(), 42892);
-        assert_eq!(result.huffman_data[0], 0xB5);
-        assert_eq!(result.huffman_data[42891], 0x0);
+        assert_eq!(result.encoded_huffman_data.len(), 42892);
+        assert_eq!(result.encoded_huffman_data[0], 0xB5);
+        assert_eq!(result.encoded_huffman_data[42891], 0x0);
 
         assert_eq!(
             result.file_headers[0],
@@ -265,25 +265,25 @@ mod tests {
         assert_eq!(result.file_name_length_table[0], 20);
         assert_eq!(result.file_name_length_table[3311], 13);
 
-        assert_eq!(result.huffman_dict.len(), 81);
+        assert_eq!(result.serialized_huffman_dict.len(), 81);
         assert_eq!(
-            result.huffman_dict[0],
+            result.serialized_huffman_dict[0],
             HuffmanDictEntry {
                 node_type: HuffmanDictNodeType::Branch,
                 value: 0x1E
             }
         );
         assert_eq!(
-            result.huffman_dict[80],
+            result.serialized_huffman_dict[80],
             HuffmanDictEntry {
                 node_type: HuffmanDictNodeType::Leaf,
                 value: 0x6C
             }
         );
 
-        assert_eq!(result.huffman_data.len(), 38590);
-        assert_eq!(result.huffman_data[0], 0x42);
-        assert_eq!(result.huffman_data[38589], 0x0);
+        assert_eq!(result.encoded_huffman_data.len(), 38590);
+        assert_eq!(result.encoded_huffman_data[0], 0x42);
+        assert_eq!(result.encoded_huffman_data[38589], 0x0);
 
         assert_eq!(
             result.file_headers[0],
@@ -369,25 +369,25 @@ mod tests {
         assert_eq!(result.file_name_length_table[0], 20);
         assert_eq!(result.file_name_length_table[3283], 13);
 
-        assert_eq!(result.huffman_dict.len(), 81);
+        assert_eq!(result.serialized_huffman_dict.len(), 81);
         assert_eq!(
-            result.huffman_dict[0],
+            result.serialized_huffman_dict[0],
             HuffmanDictEntry {
                 node_type: HuffmanDictNodeType::Branch,
                 value: 0x2E
             }
         );
         assert_eq!(
-            result.huffman_dict[80],
+            result.serialized_huffman_dict[80],
             HuffmanDictEntry {
                 node_type: HuffmanDictNodeType::Leaf,
                 value: 0x61
             }
         );
 
-        assert_eq!(result.huffman_data.len(), 37742);
-        assert_eq!(result.huffman_data[0], 0x78);
-        assert_eq!(result.huffman_data[37741], 0x0);
+        assert_eq!(result.encoded_huffman_data.len(), 37742);
+        assert_eq!(result.encoded_huffman_data[0], 0x78);
+        assert_eq!(result.encoded_huffman_data[37741], 0x0);
 
         assert_eq!(
             result.file_headers[0],
