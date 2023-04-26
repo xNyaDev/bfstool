@@ -11,6 +11,8 @@ pub struct ArchiveHeader {
     /// File version
     ///
     /// `05 05 04 20`, v2004.05.05a and v2004.05.05b
+    ///
+    /// `10 03 07 20`, v2007.03.10
     pub version: u32,
     /// Offset at which the header section ends
     pub header_end: u32,
