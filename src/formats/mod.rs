@@ -25,12 +25,12 @@ pub enum Format {
     ///
     /// Used by:
     /// - FlatOut 2
+    /// - FlatOut: Head On
     Bfs2004b,
     /// `bfs1` v2007.03.10 format
     ///
     /// Used by:
     /// - FlatOut: Ultimate Carnage
-    /// - FlatOut: Head On
     /// - Sega Rally Revo
     Bfs2007,
     /// `bfs1` v2011.12.20 format

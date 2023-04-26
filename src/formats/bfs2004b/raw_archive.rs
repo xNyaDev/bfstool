@@ -4,8 +4,8 @@ use binrw::BinRead;
 
 use crate::formats::bfs2004a::ArchiveHeader;
 use crate::formats::bfs2004b::{
-    EncodedHuffmanData, SerializedHuffmanDict, FileHeader, FileNameLengthTable, FileNameOffsetTable,
-    HashTable, MetadataHeader,
+    EncodedHuffmanData, FileHeader, FileNameLengthTable, FileNameOffsetTable, HashTable,
+    MetadataHeader, SerializedHuffmanDict,
 };
 
 use super::metadata_helpers;
@@ -311,6 +311,110 @@ mod tests {
                 folder_id: 0x332,
                 file_id: 0x72B,
                 file_copies_offsets: vec![],
+            }
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn parsing_test_psp() -> io::Result<()> {
+        let test_file = File::open("test_data/bfs2004b/foho_flatout.bin")?;
+        let mut test_reader = BufReader::new(test_file);
+
+        let result = RawArchive::read(&mut test_reader).unwrap();
+
+        assert_eq!(
+            result.archive_header,
+            ArchiveHeader {
+                magic: MAGIC,
+                version: VERSION,
+                header_end: 0x36210,
+                file_count: 5909,
+            }
+        );
+
+        assert_eq!(result.hash_table.hash_size, HASH_SIZE);
+        assert_eq!(
+            result.hash_table.entries[0],
+            HashTableEntry {
+                offset: 0x10498,
+                file_count: 8,
+            }
+        );
+        assert_eq!(
+            result.hash_table.entries[HASH_SIZE as usize - 1],
+            HashTableEntry {
+                offset: 0x360B0,
+                file_count: 7,
+            }
+        );
+
+        assert_eq!(
+            result.metadata_header,
+            MetadataHeader {
+                file_headers_offset: 0xE55C,
+                file_name_offset_table_offset: 0x14,
+                file_name_length_table_offset: 0x33DC,
+                huffman_dictionary_offset: 0x4DC0,
+                huffman_data_offset: 0x4E62,
+            }
+        );
+
+        assert_eq!(result.file_name_offset_table.len(), 3314);
+        assert_eq!(result.file_name_offset_table[0], 0x0);
+        assert_eq!(result.file_name_offset_table[3313], 0x96F1);
+
+        assert_eq!(result.file_name_length_table.len(), 3314);
+        assert_eq!(result.file_name_length_table[0], 20);
+        assert_eq!(result.file_name_length_table[3313], 13);
+
+        assert_eq!(result.serialized_huffman_dict.len(), 81);
+        assert_eq!(
+            result.serialized_huffman_dict[0],
+            HuffmanDictEntry {
+                node_type: HuffmanDictNodeType::Branch,
+                value: 0x1C
+            }
+        );
+        assert_eq!(
+            result.serialized_huffman_dict[80],
+            HuffmanDictEntry {
+                node_type: HuffmanDictNodeType::Leaf,
+                value: 0x2E
+            }
+        );
+
+        assert_eq!(result.encoded_huffman_data.len(), 38650);
+        assert_eq!(result.encoded_huffman_data[0], 0x1E);
+        assert_eq!(result.encoded_huffman_data[38649], 0x0);
+
+        assert_eq!(
+            result.file_headers[0],
+            FileHeader {
+                flags: 0x05,
+                file_copies: 0,
+                data_offset: 0xE5CB4FA,
+                unpacked_size: 0xCA0,
+                packed_size: 0x771,
+                crc32: 0x624B53E4,
+                folder_id: 0x3A0,
+                file_id: 0xA6B,
+                file_copies_offsets: vec![],
+            }
+        );
+        assert_eq!(
+            result.file_headers[5908],
+            FileHeader {
+                flags: 0x05,
+                file_copies: 1,
+                data_offset: 0xDE29682,
+                unpacked_size: 0x8480,
+                packed_size: 0x4509,
+                crc32: 0xF4684B70,
+                folder_id: 0x339,
+                file_id: 0x415,
+                file_copies_offsets: vec![0xDE35C3B],
             }
         );
 
