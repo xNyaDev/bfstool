@@ -40,6 +40,11 @@ pub trait ArchiveReader<R: BufRead + Seek> {
         file_info
             .into_iter()
             .try_for_each(|(file_name, archived_file_info)| {
+                let file_name = if file_name.is_empty() {
+                    format!("{:x}.bin", archived_file_info.offset)
+                } else {
+                    file_name
+                };
                 let file_path = PathBuf::from(&file_name);
                 fs::create_dir_all(folder_name.join(file_path.parent().unwrap_or(Path::new(""))))?;
                 let mut output_file = File::create(folder_name.join(file_path))?;
