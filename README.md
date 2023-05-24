@@ -31,6 +31,8 @@ in which case all the required changes are documented.
         - [x] Reading
         - [ ] Writing
     - [ ] `bfs1` v2007.03.10 (FlatOut: Ultimate Carnage, Sega Rally Revo)
+        - [x] Reading
+        - [ ] Writing
     - [ ] `bfs1` v2011.12.20 (Ridge Racer Unbounded)
     - [ ] `bbfs` v2013.03.14 (Ridge Racer Driftopia, Next Car Game Free Technology Demo, Next Car
       Game Technology Sneak Peek 2.0)

@@ -22,7 +22,8 @@ mod hash_table_entry;
 mod huffman_dict_entry;
 mod huffman_helpers;
 mod metadata_header;
-mod metadata_helpers;
+/// Utilities to help deserialize metadata
+pub mod metadata_helpers;
 mod raw_archive;
 
 /// Amount of entries in the hash table

@@ -113,3 +113,64 @@ fn test_bfs2004b() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_bfs2007() -> Result<(), Box<dyn Error>> {
+    let archive = bfstool::read_archive_file(
+        &PathBuf::from("test_data/bfs2007/fouc_data.bin"),
+        bfstool::Format::Bfs2007,
+        false,
+    )?;
+
+    assert_eq!(archive.file_count(), 9567);
+
+    let names = archive.file_names();
+
+    assert_eq!(names[0], "data/tracks/racing/textures/rac_lamppost4.dds");
+    assert_eq!(names[names.len() - 1], "data/cars/car_36/lights.dds");
+
+    assert_eq!(
+        archive.file_info("data/tracks/racing/textures/rac_lamppost4.dds"),
+        vec![ArchivedFileInfo {
+            offset: 0x86B1065A,
+            compression_method: CompressionMethod::Zlib,
+            size: 0xAB38,
+            compressed_size: 0x8749,
+            copies: 0,
+            hash: Some(0x22434A64),
+        }]
+    );
+
+    assert_eq!(
+        archive.multiple_file_info(vec![
+            "data/tracks/racing/textures/rac_lamppost4.dds".to_string(),
+            "data/cars/car_36/lights.dds".to_string()
+        ]),
+        vec![
+            (
+                "data/tracks/racing/textures/rac_lamppost4.dds".to_string(),
+                ArchivedFileInfo {
+                    offset: 0x86B1065A,
+                    compression_method: CompressionMethod::Zlib,
+                    size: 0xAB38,
+                    compressed_size: 0x8749,
+                    copies: 0,
+                    hash: Some(0x22434A64),
+                }
+            ),
+            (
+                "data/cars/car_36/lights.dds".to_string(),
+                ArchivedFileInfo {
+                    offset: 0xCA08A800,
+                    compression_method: CompressionMethod::None,
+                    size: 0x155F0,
+                    compressed_size: 0x155F0,
+                    copies: 0,
+                    hash: Some(0xFBE9D4BB),
+                }
+            ),
+        ]
+    );
+
+    Ok(())
+}

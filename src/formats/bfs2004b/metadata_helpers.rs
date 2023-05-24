@@ -1,5 +1,8 @@
 use crate::formats::bfs2004b::{HashTable, MetadataHeader};
 
+/// Given metadata offsets, calculate the amount of a specific entry type
+///
+/// Wanted entry type is passed in as an offset to where the section starts as `wanted_start`
 pub fn calculate_metadata_count(
     wanted_start: u32,
     metadata_header: &MetadataHeader,
@@ -53,6 +56,7 @@ pub fn calculate_metadata_count(
     }
 }
 
+/// Calculate where does the metadata section start as an absolute offset
 pub fn calculate_metadata_start(hash_table: &HashTable) -> u32 {
     hash_table.entries.len() as u32 * 8 + 20
 }
