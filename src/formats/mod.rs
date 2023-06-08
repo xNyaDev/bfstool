@@ -7,17 +7,17 @@ pub mod bfs2007;
 
 /// Available archive formats to use
 pub enum Format {
-    /// `bbzf` format
+    /// `bbzf` v2001.06.06 format
     ///
     /// Used by:
     /// - Rally Trophy
-    Bbzf,
+    Bzf2001,
     /// `bzf2` v2002.01.11 format
     ///
     /// Used by:
     /// - Bugbear Retro Demo 2002,
     /// - Tough Trucks: Modified Monsters
-    Bzf2,
+    Bzf2002,
     /// `bfs1` v2004.05.05a format
     ///
     /// Used by:
