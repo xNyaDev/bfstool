@@ -22,6 +22,10 @@ in which case all the required changes are documented.
 
 - [ ] BZF
     - [ ] `bbzf` v2001.06.06 (Rally Trophy)
+      - [ ] Decryption
+      - [x] Reading
+      - [ ] Writing
+      - [ ] Encryption
     - [ ] `bzf2` v2002.01.11 (Bugbear Retro Demo 2002, Tough Trucks: Modified Monsters)
 - [ ] BFS
     - [ ] `bfs1` v2004.05.05a (FlatOut)

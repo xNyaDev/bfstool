@@ -174,3 +174,64 @@ fn test_bfs2007() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_bzf2001() -> Result<(), Box<dyn Error>> {
+    let archive = bfstool::read_archive_file(
+        &PathBuf::from("test_data/bzf2001/language.bin"),
+        bfstool::Format::Bzf2001,
+        false,
+    )?;
+
+    assert_eq!(archive.file_count(), 4);
+
+    let names = archive.file_names();
+
+    assert_eq!(names[0], "credits.txt");
+    assert_eq!(names[names.len() - 1], "language_english.TXT");
+
+    assert_eq!(
+        archive.file_info("credits.txt"),
+        vec![ArchivedFileInfo {
+            offset: 0xE0,
+            compression_method: CompressionMethod::Zlib,
+            size: 0xF5F,
+            compressed_size: 0x78D,
+            copies: 0,
+            hash: None,
+        }]
+    );
+
+    assert_eq!(
+        archive.multiple_file_info(vec![
+            "credits.txt".to_string(),
+            "language_english.TXT".to_string()
+        ]),
+        vec![
+            (
+                "credits.txt".to_string(),
+                ArchivedFileInfo {
+                    offset: 0xE0,
+                    compression_method: CompressionMethod::Zlib,
+                    size: 0xF5F,
+                    compressed_size: 0x78D,
+                    copies: 0,
+                    hash: None,
+                }
+            ),
+            (
+                "language_english.TXT".to_string(),
+                ArchivedFileInfo {
+                    offset: 0x18B4,
+                    compression_method: CompressionMethod::Zlib,
+                    size: 0x1D1B,
+                    compressed_size: 0xD26,
+                    copies: 0,
+                    hash: None,
+                }
+            ),
+        ]
+    );
+
+    Ok(())
+}

@@ -32,6 +32,7 @@ enum Format {
     Bfs2004a,
     Bfs2004b,
     Bfs2007,
+    Bzf2001,
 }
 
 impl From<Format> for bfstool::Format {
@@ -40,6 +41,7 @@ impl From<Format> for bfstool::Format {
             Format::Bfs2004a => bfstool::Format::Bfs2004a,
             Format::Bfs2004b => bfstool::Format::Bfs2004b,
             Format::Bfs2007 => bfstool::Format::Bfs2007,
+            Format::Bzf2001 => bfstool::Format::Bzf2001,
         }
     }
 }
