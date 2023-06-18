@@ -2,6 +2,7 @@ use std::error::Error;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
+mod decrypt;
 mod display;
 mod extract;
 mod list;
@@ -25,6 +26,8 @@ enum Commands {
     /// Extract all files from the archive
     #[clap(visible_alias = "e", visible_alias = "x")]
     Extract(extract::Arguments),
+    /// Decrypt an archive
+    Decrypt(decrypt::Arguments),
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]
@@ -32,6 +35,11 @@ enum Format {
     Bfs2004a,
     Bfs2004b,
     Bfs2007,
+    Bzf2001,
+}
+
+#[derive(ValueEnum, Clone, Eq, PartialEq)]
+enum CryptFormat {
     Bzf2001,
 }
 
@@ -52,5 +60,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::List(arguments) => list::run(arguments, &mut std::io::stdout()),
         Commands::Tree(arguments) => tree::run(arguments, &mut std::io::stdout()),
         Commands::Extract(arguments) => extract::run(arguments),
+        Commands::Decrypt(arguments) => decrypt::run(arguments)
     }
 }
