@@ -22,7 +22,7 @@ in which case all the required changes are documented.
 
 - [ ] BZF
     - [ ] `bbzf` v2001.06.06 (Rally Trophy)
-      - [ ] Decryption
+      - [x] Decryption
       - [x] Reading
       - [ ] Writing
       - [ ] Encryption

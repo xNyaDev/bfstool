@@ -23,7 +23,7 @@
 //!
 //! - [ ] BZF
 //!   - [ ] `bbzf` v2001.06.06 (Rally Trophy)
-//!     - [ ] Decryption
+//!     - [x] Decryption
 //!     - [x] Reading
 //!     - [ ] Writing
 //!     - [ ] Encryption
@@ -66,6 +66,8 @@ pub mod archive_reader;
 pub mod archived_file_info;
 /// Provides compression utilities
 mod compression;
+/// Provides all encryption utilities
+pub mod crypt;
 /// Provides display utilities
 mod display;
 /// Provides all the formats available in the tool as well as their implementations
