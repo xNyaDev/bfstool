@@ -4,7 +4,8 @@ use std::io::Read;
 use std::path::PathBuf;
 
 use clap::Parser;
-use serde::Deserialize;
+
+use bfstool::keys::Keys;
 
 use crate::CryptFormat;
 
@@ -22,17 +23,6 @@ pub struct Arguments {
     format: CryptFormat,
 }
 
-#[derive(Deserialize)]
-struct Keys {
-    pub bzf2001: Bzf2001Keys,
-}
-
-#[derive(Deserialize)]
-struct Bzf2001Keys {
-    #[serde(deserialize_with = "hex::serde::deserialize")]
-    pub key: [u8; 256],
-}
-
 pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
     let mut file = File::open(arguments.keys)?;
     let mut contents = String::new();
@@ -42,7 +32,7 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
         CryptFormat::Bzf2001 => bfstool::crypt::bzf2001::decrypt_file(
             arguments.input,
             arguments.output,
-            keys.bzf2001.key,
+            keys.bzf2001.expect("Missing decryption key").key,
         )?,
     }
     Ok(())

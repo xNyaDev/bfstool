@@ -35,8 +35,9 @@ tauri-winres = { git = "https://github.com/xNyaDev/winres.git", optional = true 
 pretty_assertions = "1.3.0"
 
 [features]
-cli = ["dep:clap", "dep:hex", "dep:indicatif", "dep:number_prefix", "dep:serde", "dep:tabled", "dep:tauri-winres", "dep:termtree", "dep:toml"]
+cli = ["dep:clap", "dep:indicatif", "dep:number_prefix", "dep:tabled", "dep:tauri-winres", "dep:termtree", "dep:toml", "keys"]
 default = ["cli"]
+keys = ["dep:hex", "dep:serde"]
 
 [[bin]]
 name = "bfstool-cli"

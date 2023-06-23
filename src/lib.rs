@@ -72,3 +72,6 @@ pub mod crypt;
 mod display;
 /// Provides all the formats available in the tool as well as their implementations
 pub mod formats;
+/// Provides structs for reading/writing a Keys.toml file
+#[cfg(feature = "keys")]
+pub mod keys;
