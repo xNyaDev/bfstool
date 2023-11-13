@@ -1,6 +1,6 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Cursor, Seek, SeekFrom, Write};
 use std::io;
+use std::io::{BufRead, BufReader, BufWriter, Cursor, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
 use binrw::BinRead;
@@ -12,7 +12,7 @@ use crate::formats::bzf2001::{ArchiveHeader, FileHeader};
 /// Encrypt a bzf2001 archive and write it into `output`
 pub fn encrypt<R: BufRead + Seek + 'static, W: Write + Seek + 'static>(
     mut input: R,
-    mut output: BufWriter<W>,
+    output: &mut BufWriter<W>,
     key: Key,
 ) -> Result<(), CryptError> {
     input.seek(SeekFrom::Start(0))?;
@@ -31,7 +31,7 @@ pub fn encrypt<R: BufRead + Seek + 'static, W: Write + Seek + 'static>(
     let file_headers = (0..archive_header.file_count)
         .map(|_| FileHeader::read(&mut file_headers_data_cursor))
         .collect::<Result<Vec<FileHeader>, _>>()?;
-    
+
     let mut key_position = 0;
     file_headers_data.iter_mut().for_each(|value| {
         *value ^= key[key_position];
@@ -91,9 +91,9 @@ pub fn encrypt_file(input: PathBuf, output: PathBuf, key: Key) -> Result<(), Cry
     let input = BufReader::new(input);
 
     let output = File::create(output)?;
-    let output = BufWriter::new(output);
+    let mut output = BufWriter::new(output);
 
-    encrypt(input, output, key)?;
+    encrypt(input, &mut output, key)?;
 
     Ok(())
 }

@@ -1,6 +1,6 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Cursor, Seek, SeekFrom, Write};
 use std::io;
+use std::io::{BufRead, BufReader, BufWriter, Cursor, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
 use binrw::BinRead;
@@ -12,7 +12,7 @@ use crate::formats::bzf2001::{ArchiveHeader, FileHeader};
 /// Decrypt a bzf2001 archive and write it into `output`
 pub fn decrypt<R: BufRead + Seek + 'static, W: Write + Seek + 'static>(
     mut input: R,
-    mut output: BufWriter<W>,
+    output: &mut BufWriter<W>,
     key: Key,
 ) -> Result<(), CryptError> {
     input.seek(SeekFrom::Start(0))?;
@@ -90,9 +90,9 @@ pub fn decrypt_file(input: PathBuf, output: PathBuf, key: Key) -> Result<(), Cry
     let input = BufReader::new(input);
 
     let output = File::create(output)?;
-    let output = BufWriter::new(output);
+    let mut output = BufWriter::new(output);
 
-    decrypt(input, output, key)?;
+    decrypt(input, &mut output, key)?;
 
     Ok(())
 }
