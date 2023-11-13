@@ -4,6 +4,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 
 mod decrypt;
 mod display;
+mod encrypt;
 mod extract;
 mod list;
 mod tree;
@@ -28,6 +29,8 @@ enum Commands {
     Extract(extract::Arguments),
     /// Decrypt an archive
     Decrypt(decrypt::Arguments),
+    /// Encrypt an archive
+    Encrypt(encrypt::Arguments),
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]
@@ -60,6 +63,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::List(arguments) => list::run(arguments, &mut std::io::stdout()),
         Commands::Tree(arguments) => tree::run(arguments, &mut std::io::stdout()),
         Commands::Extract(arguments) => extract::run(arguments),
-        Commands::Decrypt(arguments) => decrypt::run(arguments)
+        Commands::Decrypt(arguments) => decrypt::run(arguments),
+        Commands::Encrypt(arguments) => encrypt::run(arguments),
     }
 }
