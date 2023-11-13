@@ -1,3 +1,4 @@
 /target
 /Cargo.lock
 /Keys.toml
+/extra_test_data
