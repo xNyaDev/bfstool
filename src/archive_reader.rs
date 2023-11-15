@@ -145,6 +145,17 @@ pub fn read_archive<R: BufRead + Seek + 'static>(
                 raw_archive,
             }))
         }
+        Format::Bzf2002 => {
+            if !force {
+                bzf2002::check_archive(&mut archive)?;
+            }
+            archive.seek(SeekFrom::Start(0))?;
+            let raw_archive = bzf2002::RawArchive::read(&mut archive)?;
+            Ok(Box::new(bzf2002::ReadArchive {
+                reader: archive,
+                raw_archive,
+            }))
+        }
         _ => todo!(),
     }
 }
