@@ -58,6 +58,22 @@
 //! - [Sewer56's FlatOut 2 Mod Loader](https://github.com/Sewer56/FlatOut2.Utils.ModLoader) adds
 //! support for files compressed with Zstandard (zstd). The files get handled automatically and no
 //! code tweaks are required.
+//!
+//! # License
+//!
+//! Licensed under either of
+//!
+//! - Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+//! - MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+//!
+//! at your option.
+//!
+//! Unless you explicitly state otherwise, any contribution intentionally submitted
+//! for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
+//! additional terms or conditions.
+//!
+//! bfstool is not affiliated with nor endorsed by Bugbear Entertainment Oy, ZOOM Platform Media, or other rightsholders.
+//! All trademarks are property of their respective owners.
 
 pub use archive_reader::{read_archive, read_archive_file};
 pub use archived_file_info::ArchivedFileInfo;
