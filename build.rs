@@ -5,7 +5,7 @@ fn main() {
             .set("FileDescription", "bfstool-cli")
             .set(
                 "LegalCopyright",
-                "Licensed under MIT or Apache-2.0, xNyaDev 2023",
+                "Licensed under MIT or Apache-2.0, xNyaDev 2024",
             )
             .set("OriginalFilename", "bfstool-cli.exe")
             .set("ProductName", "bfstool-cli")
