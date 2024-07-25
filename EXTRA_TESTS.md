@@ -17,6 +17,6 @@ to the person running the tests to ensure the correct keys are provided.
 
 ## Required files for extra tests
 
-- `Keys.toml` - Has to be obtained by dumping the keys from Rally Trophy either manually or with xnya_rallytrophy_cryptutil
-  which can be sourced from [here](https://github.com/xNyaDev/game-mods).
+- `Keys.toml` - Has to be filled by dumping the keys from respective games either manually or with [my mods](https://github.com/xNyaDev/game-mods).
 - `bzf2001/language.bzf` - Sourced from Rally Trophy, version 1.01 EN/DE, `Data/language.bzf`
+- `bzf2002/Shader.bzf` - Sourced from Bugbear Retro Demo 2002, `Data/Shader.bzf`

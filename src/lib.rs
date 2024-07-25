@@ -28,10 +28,10 @@
 //!     - [ ] Writing
 //!     - [x] Encryption
 //!   - [ ] `bzf2` v2002.01.11 (Bugbear Retro Demo 2002, Tough Trucks: Modified Monsters)
-//!     - [ ] Decryption
+//!     - [x] Decryption
 //!     - [x] Reading
 //!     - [ ] Writing
-//!     - [ ] Encryption
+//!     - [x] Encryption
 //! - [ ] BFS
 //!   - [ ] `bfs1` v2004.05.05a (FlatOut)
 //!     - [x] Reading

@@ -50,3 +50,56 @@ fn test_bzf2001() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+#[cfg(feature = "extra_tests")]
+fn test_bzf2002() -> Result<(), Box<dyn std::error::Error>> {
+    use std::fs::File;
+    use std::io::Write;
+    use std::io::{BufReader, BufWriter, Cursor, Read};
+
+    use bfstool::keys::Keys;
+
+    use pretty_assertions::assert_eq;
+
+    let mut file = File::open("extra_test_data/Keys.toml")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let keys = toml::from_str::<Keys>(&contents)?;
+    let key = keys.bzf2002.expect("Missing decryption key").key;
+
+    let input = File::open("extra_test_data/bzf2002/Shader.bzf")?;
+    let input = BufReader::new(input);
+
+    let decrypted_data = Vec::new();
+    let mut decrypted_data = BufWriter::new(Cursor::new(decrypted_data));
+
+    bfstool::crypt::bzf2002::decrypt(input, &mut decrypted_data, key)?;
+
+    let expected_hash = blake3::Hash::from_hex(
+        b"960ea0beb5a5edfff363054fe0893cb451162ca1fe3884d6d6aeb4a951da41b4",
+    )?;
+
+    decrypted_data.flush()?;
+    let decrypted_data = decrypted_data.into_inner()?;
+
+    let hash = blake3::hash(decrypted_data.get_ref().as_slice());
+
+    assert_eq!(expected_hash, hash);
+
+    let encrypted_data = Vec::new();
+    let mut encrypted_data = BufWriter::new(Cursor::new(encrypted_data));
+
+    bfstool::crypt::bzf2002::encrypt(decrypted_data, &mut encrypted_data, key)?;
+
+    let mut original_data = Vec::new();
+    let mut input = File::open("extra_test_data/bzf2002/Shader.bzf")?;
+    input.read_to_end(&mut original_data)?;
+
+    encrypted_data.flush()?;
+    let encrypted_data = encrypted_data.into_inner()?;
+
+    assert_eq!(original_data, encrypted_data.into_inner());
+
+    Ok(())
+}

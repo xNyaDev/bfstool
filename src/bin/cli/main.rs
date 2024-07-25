@@ -45,6 +45,7 @@ enum Format {
 #[derive(ValueEnum, Clone, Eq, PartialEq)]
 enum CryptFormat {
     Bzf2001,
+    Bzf2002,
 }
 
 impl From<Format> for bfstool::Format {

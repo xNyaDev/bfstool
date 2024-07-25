@@ -4,6 +4,10 @@ use thiserror::Error;
 
 /// Support for the Bzf2001 encryption format
 pub mod bzf2001;
+/// Support for the Bzf2002 encryption format
+pub mod bzf2002;
+/// Contains functions and types used in the XXTEA encryption algorithm
+mod xxtea;
 
 /// Errors that can occur while encryption/decryption
 #[derive(Error, Debug)]

@@ -34,6 +34,11 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
             arguments.output,
             keys.bzf2001.expect("Missing encryption key").key,
         )?,
+        CryptFormat::Bzf2002 => bfstool::crypt::bzf2002::decrypt_file(
+            arguments.input,
+            arguments.output,
+            keys.bzf2002.expect("Missing encryption key").key,
+        )?,
     }
     Ok(())
 }
