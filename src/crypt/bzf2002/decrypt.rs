@@ -24,7 +24,7 @@ pub fn decrypt<R: BufRead + Seek + 'static, W: Write + Seek + 'static>(
     output.write_all(&archive_header)?;
     let archive_header = ArchiveHeader::read(&mut Cursor::new(archive_header))?;
 
-    let file_header_size = (archive_header.header_size - 0x10 + 4) & !3; // Skip the archive header and pad to next multiple of 4 bytes
+    let file_header_size = (archive_header.header_size - 0x10 + 3) & !3; // Skip the archive header and pad to next multiple of 4 bytes
 
     let mut file_header_data = vec![0u8; file_header_size as usize];
     input.read_exact(&mut file_header_data)?;
