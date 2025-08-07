@@ -31,16 +31,16 @@ pub struct TableFileInfo {
     #[tabled(rename = "Method")]
     pub method: CompressionMethod,
 
-    #[tabled(rename = "Size", display_with = "display_size")]
+    #[tabled(rename = "Size", display("display_size"))]
     pub size: u64,
 
-    #[tabled(rename = "Compressed", display_with = "display_size")]
+    #[tabled(rename = "Compressed", display("display_size"))]
     pub compressed: u64,
 
     #[tabled(rename = "Copies")]
     pub copies: u64,
 
-    #[tabled(rename = "Offset", display_with = "display_offset")]
+    #[tabled(rename = "Offset", display("display_offset"))]
     pub offset: u64,
 
     #[tabled(rename = "File Name")]
@@ -80,7 +80,7 @@ pub fn run(arguments: Arguments, mut writer: impl std::io::Write) -> Result<(), 
         Table::new(table_contents)
             .with(Style::markdown())
             .with(Modify::new(Segment::all()).with(Alignment::right()))
-            .with(Modify::new(Columns::single(4)).with(Alignment::center()))
+            .with(Modify::new(Columns::one(4)).with(Alignment::center()))
             .with(Modify::new(Columns::last()).with(Alignment::left()))
     )?;
     Ok(())
