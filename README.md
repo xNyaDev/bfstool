@@ -3,7 +3,7 @@
 BZF and BFS archives are present in all games and tech demos developed by Bugbear Entertainment
 except Glimmerati (Nokia N-Gage).
 
-This library guarantees support for official files and provides support for custom files
+This library guarantees support for official pre-Wreckfest Bugbear files and provides support for other files
 on a best-effort basis. Sometimes specific behaviour is required to support unofficial files,
 in which case all the required changes are documented.
 
