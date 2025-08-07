@@ -98,14 +98,14 @@ fn build_printable_tree(directory: &TreeDirectory) -> Tree<String> {
             root
         },
     );
-    let result = directory
+
+    directory
         .file_children
         .iter()
         .fold(result, |mut root, file| {
             root.push(format!("{} [{}]", file.name, display_size(&file.size)));
             root
-        });
-    result
+        })
 }
 
 pub fn run(arguments: Arguments, mut writer: impl std::io::Write) -> Result<(), Box<dyn Error>> {

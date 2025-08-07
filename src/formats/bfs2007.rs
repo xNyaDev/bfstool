@@ -7,14 +7,14 @@ pub use file_header::FileHeader;
 pub use metadata_header::MetadataHeader;
 pub use raw_archive::RawArchive;
 
+use crate::ArchivedFileInfo;
 use crate::archive_reader::ReadError::{InvalidHashSize, InvalidMagic, InvalidVersion};
 use crate::archive_reader::{ArchiveReader, ReadError};
-use crate::ArchivedFileInfo;
 
 pub use super::bfs2004b::{
-    decode_all_names, metadata_helpers, EncodedHuffmanData, FileNameLengthTable,
-    FileNameOffsetTable, HashTable, HashTableEntry, HuffmanDictEntry, HuffmanDictNodeType,
-    SerializedHuffmanDict,
+    EncodedHuffmanData, FileNameLengthTable, FileNameOffsetTable, HashTable, HashTableEntry,
+    HuffmanDictEntry, HuffmanDictNodeType, SerializedHuffmanDict, decode_all_names,
+    metadata_helpers,
 };
 
 mod archive_header;

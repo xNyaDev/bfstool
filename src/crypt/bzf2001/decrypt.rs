@@ -5,8 +5,8 @@ use std::path::PathBuf;
 
 use binrw::BinRead;
 
-use crate::crypt::bzf2001::Key;
 use crate::crypt::CryptError;
+use crate::crypt::bzf2001::Key;
 use crate::formats::bzf2001::{ArchiveHeader, FileHeader};
 
 /// Decrypt a bzf2001 archive and write it into `output`

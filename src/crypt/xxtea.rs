@@ -7,7 +7,7 @@ pub type KeyFn = fn(key: [u32; 4], p: usize, e: usize) -> u32;
 pub type MxFn = fn(y: u32, z: u32, sum: u32, key_fn_out: u32) -> u32;
 
 /// Encoding part of XXTEA, based on the reference C implementation
-pub fn xxtea_encode(data: &mut Vec<u32>, key: [u32; 4], mx: MxFn, key_fn: KeyFn) {
+pub fn xxtea_encode(data: &mut [u32], key: [u32; 4], mx: MxFn, key_fn: KeyFn) {
     if data.len() <= 1 {
         return;
     }
@@ -32,7 +32,7 @@ pub fn xxtea_encode(data: &mut Vec<u32>, key: [u32; 4], mx: MxFn, key_fn: KeyFn)
 }
 
 /// Decoding part of XXTEA, based on the reference C implementation
-pub fn xxtea_decode(data: &mut Vec<u32>, key: [u32; 4], mx: MxFn, key_fn: KeyFn) {
+pub fn xxtea_decode(data: &mut [u32], key: [u32; 4], mx: MxFn, key_fn: KeyFn) {
     if data.len() <= 1 {
         return;
     }

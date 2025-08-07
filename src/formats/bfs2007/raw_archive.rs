@@ -3,8 +3,8 @@ use std::io::SeekFrom;
 use binrw::BinRead;
 
 use super::{
-    metadata_helpers, ArchiveHeader, EncodedHuffmanData, FileHeader, FileNameLengthTable,
-    FileNameOffsetTable, HashTable, MetadataHeader, SerializedHuffmanDict,
+    ArchiveHeader, EncodedHuffmanData, FileHeader, FileNameLengthTable, FileNameOffsetTable,
+    HashTable, MetadataHeader, SerializedHuffmanDict, metadata_helpers,
 };
 
 /// Raw archive contents that can be read directly from a .bfs file or written to one

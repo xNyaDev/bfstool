@@ -5,8 +5,8 @@ use std::path::PathBuf;
 
 use binrw::BinRead;
 
-use crate::crypt::bzf2002::Key;
 use crate::crypt::CryptError;
+use crate::crypt::bzf2002::Key;
 use crate::crypt::xxtea::xxtea_encode;
 use crate::formats::bzf2002::ArchiveHeader;
 
@@ -28,16 +28,26 @@ pub fn encrypt<R: BufRead + Seek + 'static, W: Write + Seek + 'static>(
 
     let mut file_header_data = vec![0u8; file_header_size as usize];
     input.read_exact(&mut file_header_data)?;
-    let mut file_header_data = file_header_data.chunks_exact(4).map(|x| u32::from_le_bytes([x[0], x[1], x[2], x[3]])).collect();
+    let mut file_header_data = file_header_data
+        .chunks_exact(4)
+        .map(|x| u32::from_le_bytes([x[0], x[1], x[2], x[3]]))
+        .collect::<Vec<_>>();
     xxtea_encode(
         &mut file_header_data,
-        key.chunks_exact(4).map(|x| u32::from_le_bytes([x[0], x[1], x[2], x[3]])).collect::<Vec<_>>().try_into().unwrap(),
+        key.chunks_exact(4)
+            .map(|x| u32::from_le_bytes([x[0], x[1], x[2], x[3]]))
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap(),
         |_, z, sum, key_fn_out| {
-            sum.wrapping_add(key_fn_out)^z.wrapping_add(z.wrapping_shl(4) ^ z.wrapping_shr(5))
+            sum.wrapping_add(key_fn_out) ^ z.wrapping_add(z.wrapping_shl(4) ^ z.wrapping_shr(5))
         },
         |key, p, e| key[e ^ p & 3],
     );
-    let file_header_data = file_header_data.into_iter().flat_map(u32::to_le_bytes).collect::<Vec<u8>>();
+    let file_header_data = file_header_data
+        .into_iter()
+        .flat_map(u32::to_le_bytes)
+        .collect::<Vec<u8>>();
     output.write_all(&file_header_data)?;
 
     io::copy(&mut input, output)?;

@@ -6,9 +6,9 @@ pub use archive_header::ArchiveHeader;
 pub use file_header::FileHeader;
 pub use raw_archive::RawArchive;
 
+use crate::ArchivedFileInfo;
 use crate::archive_reader::ReadError::{InvalidMagic, InvalidVersion};
 use crate::archive_reader::{ArchiveReader, ReadError};
-use crate::ArchivedFileInfo;
 
 mod archive_header;
 mod file_header;

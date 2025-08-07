@@ -7,8 +7,8 @@ use tabled::settings::object::{Columns, Segment};
 use tabled::settings::{Alignment, Modify, Style};
 use tabled::{Table, Tabled};
 
-use bfstool::read_archive_file;
 use bfstool::CompressionMethod;
+use bfstool::read_archive_file;
 
 use crate::display::{display_offset, display_size};
 

@@ -8,9 +8,9 @@ pub use hash_table::HashTable;
 pub use hash_table_entry::HashTableEntry;
 pub use raw_archive::RawArchive;
 
+use crate::ArchivedFileInfo;
 use crate::archive_reader::ReadError::{InvalidHashSize, InvalidMagic, InvalidVersion};
 use crate::archive_reader::{ArchiveReader, ReadError};
-use crate::ArchivedFileInfo;
 
 mod archive_header;
 mod file_header;

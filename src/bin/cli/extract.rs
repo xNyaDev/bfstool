@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 
-use bfstool::{read_archive_file, CompressionMethod};
+use bfstool::{CompressionMethod, read_archive_file};
 
 use crate::display::display_size;
 

@@ -21,7 +21,7 @@ pub fn calculate_metadata_count(
 
     let corrected_wanted_start = wanted_start + metadata_start;
 
-    let mut offsets = vec![
+    let mut offsets = [
         header_end,
         corrected_header.file_headers_offset,
         corrected_header.file_name_offset_table_offset,

@@ -51,13 +51,13 @@
 //! ## Bfs2004a
 //!
 //! - [FOV3 Mod](https://www.moddb.com/mods/fov3-mod) has some files with file names of length 0.
-//! Additional code is required to handle those files. The files will be listed without a name,
-//! but will be extracted with a filename matching the file offset.
+//!   Additional code is required to handle those files. The files will be listed without a name,
+//!   but will be extracted with a filename matching the file offset.
 //!
 //! ## Bfs2004b
 //! - [Sewer56's FlatOut 2 Mod Loader](https://github.com/Sewer56/FlatOut2.Utils.ModLoader) adds
-//! support for files compressed with Zstandard (zstd). The files get handled automatically and no
-//! code tweaks are required.
+//!   support for files compressed with Zstandard (zstd). The files get handled automatically and no
+//!   code tweaks are required.
 //!
 //! # License
 //!

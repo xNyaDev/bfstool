@@ -7,10 +7,13 @@ use std::{fs, io};
 
 use binrw::BinRead;
 
+use crate::ArchivedFileInfo;
 use crate::compression::extract_data;
 use crate::display::{ascii_value, spaced_hex};
 use crate::formats::*;
-use crate::ArchivedFileInfo;
+
+/// Gets called every time a file is extracted out of an archive
+pub type ExtractCallback<'a> = Box<dyn Fn(&str, ArchivedFileInfo) + 'a>;
 
 /// An archive type must implement ArchiveReader to be readable
 pub trait ArchiveReader<R: BufRead + Seek> {
@@ -33,7 +36,7 @@ pub trait ArchiveReader<R: BufRead + Seek> {
         &mut self,
         file_names: Vec<String>,
         folder_name: &Path,
-        callback: Box<dyn Fn(&str, ArchivedFileInfo) + 'a>,
+        callback: ExtractCallback<'a>,
     ) -> io::Result<()> {
         let file_info = self.multiple_file_info(file_names);
         let reader = self.reader();
@@ -202,13 +205,13 @@ impl Display for ReadError {
                     "Archive magic does not match - expected: {}{}, got: {}{}",
                     spaced_hex(&expected_bytes),
                     if let Some(string) = ascii_value(&expected_bytes) {
-                        format!(" ({})", string)
+                        format!(" ({string})")
                     } else {
                         Default::default()
                     },
                     spaced_hex(&got_bytes),
                     if let Some(string) = ascii_value(&got_bytes) {
-                        format!(" ({})", string)
+                        format!(" ({string})")
                     } else {
                         Default::default()
                     },
@@ -227,15 +230,14 @@ impl Display for ReadError {
             ReadError::InvalidHashSize { expected, got } => {
                 write!(
                     f,
-                    "Archive hash size does not match - expected: {}, got: {}",
-                    expected, got,
+                    "Archive hash size does not match - expected: {expected}, got: {got}",
                 )
             }
             ReadError::IoError(error) => {
-                write!(f, "An IO error occurred: {}", error)
+                write!(f, "An IO error occurred: {error}")
             }
             ReadError::ParsingError(error) => {
-                write!(f, "A parsing error occurred: {}", error)
+                write!(f, "A parsing error occurred: {error}")
             }
         }
     }

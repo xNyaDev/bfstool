@@ -11,9 +11,9 @@ pub use huffman_helpers::decode_all_names;
 pub use metadata_header::MetadataHeader;
 pub use raw_archive::RawArchive;
 
+use crate::ArchivedFileInfo;
 use crate::archive_reader::ReadError::{InvalidHashSize, InvalidMagic, InvalidVersion};
 use crate::archive_reader::{ArchiveReader, ReadError};
-use crate::ArchivedFileInfo;
 
 mod archive_header;
 mod file_header;

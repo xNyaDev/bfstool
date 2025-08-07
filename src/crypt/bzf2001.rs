@@ -6,4 +6,3 @@ mod encrypt;
 
 /// Key used in bzf2001 encryption
 pub type Key = [u8; 256];
-

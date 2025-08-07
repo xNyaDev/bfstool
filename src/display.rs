@@ -2,7 +2,7 @@
 pub fn spaced_hex(bytes: &[u8]) -> String {
     bytes
         .iter()
-        .map(|byte| format!("{:02X}", byte))
+        .map(|byte| format!("{byte:02X}"))
         .collect::<Vec<String>>()
         .join(" ")
 }
@@ -17,9 +17,5 @@ pub fn ascii_value(bytes: &[u8]) -> Option<String> {
             return None;
         }
     }
-    if let Ok(string) = String::from_utf8(bytes.to_vec()) {
-        Some(string)
-    } else {
-        None
-    }
+    String::from_utf8(bytes.to_vec()).ok()
 }
