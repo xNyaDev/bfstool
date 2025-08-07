@@ -159,6 +159,24 @@ pub fn read_archive<R: BufRead + Seek + 'static>(
                 raw_archive,
             }))
         }
+        Format::Bfs2011 => {
+            if !force {
+                bfs2011::check_archive(&mut archive)?;
+            }
+            archive.seek(SeekFrom::Start(0))?;
+            let raw_archive = bfs2011::RawArchive::read(&mut archive)?;
+            let decoded_names = bfs2011::decode_all_names(
+                &raw_archive.file_name_offset_table,
+                &raw_archive.file_name_length_table,
+                &raw_archive.serialized_huffman_dict,
+                &raw_archive.encoded_huffman_data,
+            );
+            Ok(Box::new(bfs2011::ReadArchive {
+                reader: archive,
+                raw_archive,
+                decoded_names,
+            }))
+        }
         _ => todo!(),
     }
 }

@@ -39,10 +39,10 @@ pub fn decrypt<R: BufRead + Seek + 'static, W: Write + Seek + 'static>(
             .collect::<Vec<_>>()
             .try_into()
             .unwrap(),
-        |_, z, sum, key_fn_out| {
-            sum.wrapping_add(key_fn_out) ^ z.wrapping_add(z.wrapping_shl(4) ^ z.wrapping_shr(5))
-        },
-        |key, p, e| key[e ^ p & 3],
+        super::MXFN,
+        super::KEYFN,
+        false,
+        None,
     );
     let file_header_data = file_header_data
         .into_iter()

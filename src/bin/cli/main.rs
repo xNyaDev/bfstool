@@ -40,12 +40,14 @@ enum Format {
     Bfs2007,
     Bzf2001,
     Bzf2002,
+    Bfs2011,
 }
 
 #[derive(ValueEnum, Clone, Eq, PartialEq)]
 enum CryptFormat {
     Bzf2001,
     Bzf2002,
+    Bfs2011,
 }
 
 impl From<Format> for bfstool::Format {
@@ -56,6 +58,7 @@ impl From<Format> for bfstool::Format {
             Format::Bfs2007 => bfstool::Format::Bfs2007,
             Format::Bzf2001 => bfstool::Format::Bzf2001,
             Format::Bzf2002 => bfstool::Format::Bzf2002,
+            Format::Bfs2011 => bfstool::Format::Bfs2011,
         }
     }
 }

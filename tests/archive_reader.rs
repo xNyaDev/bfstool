@@ -296,3 +296,67 @@ fn test_bzf2002() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_bfs2011() -> Result<(), Box<dyn Error>> {
+    let archive = bfstool::read_archive_file(
+        &PathBuf::from("test_data/bfs2011/00__ridge_racer__.bin"),
+        bfstool::Format::Bfs2011,
+        false,
+    )?;
+
+    assert_eq!(archive.file_count(), 273);
+
+    let names = archive.file_names();
+
+    assert_eq!(names[0], "data/database/data/cars/09_hero/database.xml");
+    assert_eq!(
+        names[names.len() - 1],
+        "data/database/data/cars/51_royal_purple/audioai/database.xml"
+    );
+
+    assert_eq!(
+        archive.file_info("data/database/data/cars/09_hero/database.xml"),
+        vec![ArchivedFileInfo {
+            offset: 0x2105E,
+            compression_method: CompressionMethod::Zlib,
+            size: 0xE7AC,
+            compressed_size: 0xBCC,
+            copies: 0,
+            hash: None,
+        }]
+    );
+
+    assert_eq!(
+        archive.multiple_file_info(vec![
+            "data/database/data/cars/09_hero/database.xml".to_string(),
+            "data/database/data/cars/51_royal_purple/audioai/database.xml".to_string()
+        ]),
+        vec![
+            (
+                "data/database/data/cars/09_hero/database.xml".to_string(),
+                ArchivedFileInfo {
+                    offset: 0x2105E,
+                    compression_method: CompressionMethod::Zlib,
+                    size: 0xE7AC,
+                    compressed_size: 0xBCC,
+                    copies: 0,
+                    hash: None,
+                }
+            ),
+            (
+                "data/database/data/cars/51_royal_purple/audioai/database.xml".to_string(),
+                ArchivedFileInfo {
+                    offset: 0x5FB95,
+                    compression_method: CompressionMethod::Zlib,
+                    size: 0xBEE,
+                    compressed_size: 0x275,
+                    copies: 0,
+                    hash: None,
+                }
+            ),
+        ]
+    );
+
+    Ok(())
+}

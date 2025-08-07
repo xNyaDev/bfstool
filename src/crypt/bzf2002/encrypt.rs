@@ -39,10 +39,10 @@ pub fn encrypt<R: BufRead + Seek + 'static, W: Write + Seek + 'static>(
             .collect::<Vec<_>>()
             .try_into()
             .unwrap(),
-        |_, z, sum, key_fn_out| {
-            sum.wrapping_add(key_fn_out) ^ z.wrapping_add(z.wrapping_shl(4) ^ z.wrapping_shr(5))
-        },
-        |key, p, e| key[e ^ p & 3],
+        super::MXFN,
+        super::KEYFN,
+        false,
+        None,
     );
     let file_header_data = file_header_data
         .into_iter()
@@ -57,7 +57,7 @@ pub fn encrypt<R: BufRead + Seek + 'static, W: Write + Seek + 'static>(
 
 /// Encrypt a bzf2002 archive and write it into `output`
 ///
-/// Utility function that opens the input file, creates the output file and calls `decrypt` on those
+/// Utility function that opens the input file, creates the output file and calls `encrypt` on those
 pub fn encrypt_file(input: PathBuf, output: PathBuf, key: Key) -> Result<(), CryptError> {
     let input = File::open(input)?;
     let input = BufReader::new(input);

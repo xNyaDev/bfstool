@@ -103,3 +103,123 @@ fn test_bzf2002() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+#[cfg(feature = "extra_tests")]
+fn test_bfs2011() -> Result<(), Box<dyn std::error::Error>> {
+    use std::fs::File;
+    use std::io::Write;
+    use std::io::{BufReader, BufWriter, Cursor, Read};
+
+    use bfstool::keys::Keys;
+
+    use pretty_assertions::assert_eq;
+
+    let mut file = File::open("extra_test_data/Keys.toml")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let keys = toml::from_str::<Keys>(&contents)?
+        .bfs2011
+        .expect("Missing decryption key");
+
+    let input = File::open("extra_test_data/bfs2011/PC_00__ridge_racer__")?;
+    let input = BufReader::new(input);
+
+    let decrypted_data = Vec::new();
+    let mut decrypted_data = BufWriter::new(Cursor::new(decrypted_data));
+
+    bfstool::crypt::bfs2011::decrypt(input, &mut decrypted_data, keys.key, keys.header_key, false)?;
+
+    let expected_hash = blake3::Hash::from_hex(
+        b"1b57422dedb1ee670eb7177ab5f2eef1c2172e63b3c6b8a791058fd49e4ea337",
+    )?;
+
+    decrypted_data.flush()?;
+    let decrypted_data = decrypted_data.into_inner()?;
+
+    let hash = blake3::hash(decrypted_data.get_ref().as_slice());
+
+    assert_eq!(expected_hash, hash);
+
+    let encrypted_data = Vec::new();
+    let mut encrypted_data = BufWriter::new(Cursor::new(encrypted_data));
+
+    bfstool::crypt::bfs2011::encrypt(
+        decrypted_data,
+        &mut encrypted_data,
+        keys.key,
+        keys.header_key,
+        false,
+    )?;
+
+    let mut original_data = Vec::new();
+    let mut input = File::open("extra_test_data/bfs2011/PC_00__ridge_racer__")?;
+    input.read_to_end(&mut original_data)?;
+
+    encrypted_data.flush()?;
+    let encrypted_data = encrypted_data.into_inner()?;
+
+    assert_eq!(original_data, encrypted_data.into_inner());
+
+    Ok(())
+}
+
+#[test]
+#[cfg(feature = "extra_tests")]
+fn test_bfs2011_ps3() -> Result<(), Box<dyn std::error::Error>> {
+    use std::fs::File;
+    use std::io::Write;
+    use std::io::{BufReader, BufWriter, Cursor, Read};
+
+    use bfstool::keys::Keys;
+
+    use pretty_assertions::assert_eq;
+
+    let mut file = File::open("extra_test_data/Keys.toml")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let keys = toml::from_str::<Keys>(&contents)?
+        .bfs2011
+        .expect("Missing decryption key");
+
+    let input = File::open("extra_test_data/bfs2011/PS3_00__ridge_racer__")?;
+    let input = BufReader::new(input);
+
+    let decrypted_data = Vec::new();
+    let mut decrypted_data = BufWriter::new(Cursor::new(decrypted_data));
+
+    bfstool::crypt::bfs2011::decrypt(input, &mut decrypted_data, keys.key, keys.header_key, true)?;
+
+    let expected_hash = blake3::Hash::from_hex(
+        b"1b57422dedb1ee670eb7177ab5f2eef1c2172e63b3c6b8a791058fd49e4ea337",
+    )?;
+
+    decrypted_data.flush()?;
+    let decrypted_data = decrypted_data.into_inner()?;
+
+    let hash = blake3::hash(decrypted_data.get_ref().as_slice());
+
+    assert_eq!(expected_hash, hash);
+
+    let encrypted_data = Vec::new();
+    let mut encrypted_data = BufWriter::new(Cursor::new(encrypted_data));
+
+    bfstool::crypt::bfs2011::encrypt(
+        decrypted_data,
+        &mut encrypted_data,
+        keys.key,
+        keys.header_key,
+        true,
+    )?;
+
+    let mut original_data = Vec::new();
+    let mut input = File::open("extra_test_data/bfs2011/PS3_00__ridge_racer__")?;
+    input.read_to_end(&mut original_data)?;
+
+    encrypted_data.flush()?;
+    let encrypted_data = encrypted_data.into_inner()?;
+
+    assert_eq!(original_data, encrypted_data.into_inner());
+
+    Ok(())
+}

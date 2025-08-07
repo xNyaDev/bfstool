@@ -4,6 +4,8 @@ pub mod bfs2004a;
 pub mod bfs2004b;
 /// Support for the Bfs2007 archive format
 pub mod bfs2007;
+/// Support for the Bfs2011 archive format
+pub mod bfs2011;
 /// Support for the Bzf2001 archive format
 pub mod bzf2001;
 /// Support for the Bzf2002 archive format

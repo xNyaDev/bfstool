@@ -21,6 +21,9 @@ pub struct Arguments {
     /// Format of the encrypted file
     #[clap(short, long)]
     format: CryptFormat,
+    /// Use Big Endian (console) encryption
+    #[clap(long)]
+    big_endian: bool,
 }
 
 pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
@@ -39,6 +42,16 @@ pub fn run(arguments: Arguments) -> Result<(), Box<dyn Error>> {
             arguments.output,
             keys.bzf2002.expect("Missing decryption key").key,
         )?,
+        CryptFormat::Bfs2011 => {
+            let keys = keys.bfs2011.expect("Missing decryption key");
+            bfstool::crypt::bfs2011::decrypt_file(
+                arguments.input,
+                arguments.output,
+                keys.key,
+                keys.header_key,
+                arguments.big_endian,
+            )?
+        }
     }
     Ok(())
 }

@@ -2,6 +2,8 @@ use std::io;
 
 use thiserror::Error;
 
+/// Support for the Bfs2011 encryption format
+pub mod bfs2011;
 /// Support for the Bzf2001 encryption format
 pub mod bzf2001;
 /// Support for the Bzf2002 encryption format

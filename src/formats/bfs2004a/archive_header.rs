@@ -1,6 +1,6 @@
 use binrw::BinRead;
 
-/// Archive Header for archive of formats: Bfs2004a, Bfs2004b
+/// Archive Header for archive of formats: Bfs2004a, Bfs2004b, Bfs2007
 #[derive(Debug, Default, Eq, PartialEq, BinRead)]
 #[brw(little)]
 pub struct ArchiveHeader {
